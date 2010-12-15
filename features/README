@@ -1,0 +1,9 @@
+These features really only make sense to write when I'm trying to figure out what
+functionality I want to add. When I already know it just seems redundant to do it
+here since this app is such a low level library.
+
+The Cucumber methodologies don't seem to be necessary most of the time since I
+RSpec seems to be a more natural fit for a programming library. I'm probably
+wrong but it really does seem to be a lot of redundancy for this application.
+
+Oh, plus they suck... I'm still learning.
