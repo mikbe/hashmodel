@@ -27,8 +27,8 @@ Scenario: Flatten input hashes to the default flatten index
    When the HashModel is populated with the test table 
    Then the HashModel recordset should look like
 	 | id        | group_id         | switch               | description                           |
-	 | :hm_id=>0 | :hm_group_id=> 0 | :switch=>"-x"        | :description=>"This is a description" |
-	 | :hm_id=>1 | :hm_group_id=> 0 | :switch=>"--xtended" | :description=>"This is a description" |
-	 | :hm_id=>2 | :hm_group_id=> 1 | :switch=>"-y"        | :description=>"Why not?"              |
-	 | :hm_id=>3 | :hm_group_id=> 2 | :switch=>"-z"        | :description=>"head for zee hills"    |
-	 | :hm_id=>4 | :hm_group_id=> 2 | :switch=>"--zee"     | :description=>"head for zee hills"    |
+	 | :_id=>0 | :_group_id=> 0 | :switch=>"-x"        | :description=>"This is a description" |
+	 | :_id=>1 | :_group_id=> 0 | :switch=>"--xtended" | :description=>"This is a description" |
+	 | :_id=>2 | :_group_id=> 1 | :switch=>"-y"        | :description=>"Why not?"              |
+	 | :_id=>3 | :_group_id=> 2 | :switch=>"-z"        | :description=>"head for zee hills"    |
+	 | :_id=>4 | :_group_id=> 2 | :switch=>"--zee"     | :description=>"head for zee hills"    |

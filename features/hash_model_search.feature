@@ -17,7 +17,7 @@ Scenario: Search using a parameter
    When we search with the single parameter "-x"
    Then the search recordset should look like
 	 | id        | group_id         | switch        | description                           |
-	 | :hm_id=>0 | :hm_group_id=> 0 | :switch=>"-x" | :description=>"This is a description" |
+	 | :_id=>0 | :_group_id=> 0 | :switch=>"-x" | :description=>"This is a description" |
 
 @active
 Scenario: Search using a block of boolean logic
@@ -26,7 +26,7 @@ Scenario: Search using a block of boolean logic
    When we search with the block {@switch == "-x"}
    Then the search recordset should look like
 	 | id        | group_id         | switch        | description                           |
-	 | :hm_id=>0 | :hm_group_id=> 0 | :switch=>"-x" | :description=>"This is a description" |
+	 | :_id=>0 | :_group_id=> 0 | :switch=>"-x" | :description=>"This is a description" |
 
 
 

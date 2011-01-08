@@ -3,7 +3,7 @@ Given /^we have a test table$/ do |table|
 end
 
 Given /^we have a HashModel instance$/ do
-  @hm = MikBe::HashModel.new
+  @hm = HashModel.new
 end
 
 When /^the HashModel is populated with the test table$/ do
@@ -35,7 +35,7 @@ end
 
 Then /^all the siblings should have the same group id$/ do
   group_ids = []
-  @siblings.each {|record| group_ids << record[:hm_group_id]}
+  @siblings.each {|record| group_ids << record[:_group_id]}
   group_ids.uniq.length.should == 1
   group_ids.uniq[0].should_not == nil
 end

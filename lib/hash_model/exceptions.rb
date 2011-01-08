@@ -1,4 +1,4 @@
-module MikBe
+class HashModel
   
   class ReservedNameError < StandardError ; end
   

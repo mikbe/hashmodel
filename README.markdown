@@ -21,11 +21,20 @@ found = @hm.where {@switch == "-x" && @parameter\_type == String}
 
 ## Usage
 
-Coming soon...
-
-For now take a look at the spec files to see simple examples of how to use the HashModel
 
 
+## Version History
+
+0.2.0 
+* Fixed bug if first field name is shorter version of another field name, e.g. :short then :shorter would cause an error.
+* Added unflattening records and adding unflattened records.
+* Changed field separator to double underscores (to allow unflattening)
+* Removed namespace module, it was annoying. Now just instantiate it with HashModel.new instead of MikBe::HashModel.new
+* Now allows a single hash, instead of an array of hashes, when creating with HashModel.new(:raw_data => hash)
+
+0.1.1 Moved to new RubyGems account
+
+0.1.0 Initial publish
 
 == Contributing to hash\_model
 
