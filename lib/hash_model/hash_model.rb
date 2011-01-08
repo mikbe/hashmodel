@@ -1,3 +1,4 @@
+require 'sourcify'
 # A simple MVC type model class for storing hashes as flattenable, searchable records
 class HashModel
   include Enumerable
@@ -171,16 +172,20 @@ class HashModel
     end
 
     # If given a parameter make our own search based on the flatten index
-    if !value.nil?
+    unless value.nil?
       # Make sure the field name is available to the proc
       flatten_index = @flatten_index 
       search = proc do
         instance_variable_get("@#{flatten_index}") == value
       end # search
     end # !value.nil?
+
+    # Convert the proc to a string so it can be viewed
+    # and later have :'s turned into @'s
+    string_search = search.to_source.match(/^proc { \((.*)\) }$/)[1]
     
     # Set and process the filter
-    @filter = search
+    @filter = string_search
     flatten
   end
 
@@ -246,8 +251,9 @@ class HashModel
       
       # Add the records to modified data if they pass the filter
       new_records.each do |new_record| 
-        @modified_data << new_record if @filter.nil? ? true : (create_object_from_flat_hash(new_record).instance_eval &@filter)
+        @modified_data << new_record if @filter.nil? ? true : (create_object_from_flat_hash(new_record).instance_eval( "proc { (#{@filter}) }.call".gsub(":", "@") ) )
       end
+
     end # raw_data.each
     set_dirty_hash
     self
@@ -339,7 +345,6 @@ class HashModel
   end
   
   private
-
 
   # Convert a hash of multiple key/value pairs to an array of single hashes.
   # {:field1 => "value1", :field2 => "value2"}
