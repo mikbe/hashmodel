@@ -21,27 +21,27 @@ Searches are very simple and logical. You can search using just using the value 
       {:switch => ["-y", "--why"],  :description => "lucky what?"},  
       {:switch => "-z",  :parameter => {:type => String}, :description => "zee svitch zu moost calz"},  
     ]  
-    hm = HashModel.new(:raw_data=>records)  
-    found = hm.where("-x")  => Returns an array of flattened records  
+    hash_model = HashModel.new(:raw_data=>records)  
+    found = hash_model.where("-x")  => Returns an array of flattened records  
 
 
 Or more powerfully you can search using boolean like logic e.g.  
    
-    hm = HashModel.new(:raw_data=>records)  
-    found = hm.where {:switch == "-x" && :parameter__type == String}  => Returns an array of flattened records  
+    hash_model = HashModel.new(:raw_data=>records)  
+    found = hash_model.where {:switch == "-x" && :parameter__type == String}  => Returns an array of flattened records  
 
 
 ## Status
 
 ###**Beta: Probably good to go but needs some more real-world testing**###  
 
-The latest version is still beta but mostly because I didn't realize little time it would take to get the changes I wanted done in version 0.3.0 and I didn't want to release 0.2.0 and 0.3.0 within a day of each other.  
+The latest version is still beta but mostly because I didn't realize how quickly I would get the changes I wanted done for version 0.3.0 and I didn't want to release 0.2.0 and 0.3.0 within a day of each other.  
 
 I expect the design to stay pretty stable from this point forward so no more surprising changes in the design or its use.
 
 ## Usage
 
-These are just a few of the major methods of the class, to see all the functionality take a look at the RSpec files.
+I've covered most of the major stuff here but to see all of the functionality take a look at the RSpec files.
 
 ### **Creating with an array of hashes**  
     records = [  
@@ -58,9 +58,13 @@ These are just a few of the major methods of the class, to see all the functiona
     >> {:switch=>"--why", :description=>"lucky what?", :_id=>3, :_group_id=>1}  
     >> {:switch=>"-z", :parameter=>{:type=>String}, :description=>"zee svitch zu moost calz", :_id=>4, :_group_id=>2}  
 
+
 ### **Group ID's and Record ID's**
-    # You may have noticed that there are two fields you didn't add in the flattened records. These are the :_id field and the :_group_id fields.
-    # :_id is a unique ID for the flattened record while :_group_id is unique to the raw record you used to create the HashModel record.
+    # You may have noticed that there are two fields you didn't add in the 
+    # flattened records. These are the :_id field and the :_group_id fields.
+    # :_id is a unique ID for the flattened record while :_group_id is 
+    # unique to the raw record you used to create the HashModel record.
+
 
 ### **Adding hashes after creation : <<, +, add, concat, push**  
     hash_model = HashModel.new  
@@ -95,9 +99,9 @@ These are just a few of the major methods of the class, to see all the functiona
       {:switch => ["-y", "--why"],  :description => "lucky what?"},  
       {:switch => "-z",  :parameter => {:type => String}, :description => "zee svitch zu moost calz"},  
     ]  
-    hm = HashModel.new(:raw_data=>records) 
+    hash_model = HashModel.new(:raw_data=>records) 
     
-    puts hm.raw_data
+    puts hash_model.raw_data
     >> {:switch => ["-x", "--xtended"], :parameter => {:type => String, :require => true}, :description => "Xish stuff"}  
     >> {:switch => ["-y", "--why"],  :description => "lucky what?"}  
     >> {:switch => "-z",  :parameter => {:type => String}, :description => "zee svitch zu moost calz"}  
@@ -109,11 +113,18 @@ These are just a few of the major methods of the class, to see all the functiona
     hash_model.each do |record|
       # record is a hash
     end
-  
+
+### **Direct access to flattened records : []**
+    # the HashModel acts a lot like an array so you can iterate over it
+    hash_model = HashModel.new(:raw_data=>records)  
+
+    puts hash_model[0]
+    >> {:switch=>"-x", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :something=>4, :_id=>0, :_group_id=>0}
+
   
 ### **Flattening records : flatten_index**
     # Flatten index is automatically set to the first field ever given
-    # but you can change it
+    # but you can change it to any field you want.
     hash_model = HashModel.new(:raw_data=>records)  
 		
     puts hash_model.flatten_index
@@ -134,24 +145,22 @@ These are just a few of the major methods of the class, to see all the functiona
 		
 
 ### **Searching Records : where**
-    # This is where the real power of the library is. You can do complex boolean searches using flattened field names.
-    
     # You can search using just a value and it will search based on the flatten_index
     records = [
       {:switch => ["-x", "--xtended"], :parameter => {:type => String, :required => true}, :description => "Xish stuff", :something => 4},
       {:switch => ["-y", "--why"],  :description => "lucky what?", :something => 7},
       {:switch => "-z",  :parameter => {:type => String, :required => true}, :description => "zee svitch zu moost calz", :something => 4},
     ]
-    hm = HashModel.new(:raw_data=>records)
-    where = hm.where("-x")
+    hash_model = HashModel.new(:raw_data=>records)
+    where = hash_model.where("-x")
 
     puts where
     >> {:switch=>"-x", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :something=>4, :_id=>0, :_group_id=>0}
     
-    # Best of all you can use complex boolean searches using normal and flattend field names.
+    # But the real power is the ability to search with complex boolean logic using normal and flattend field names.
     # Note that flattened field names are seperated with double under lines __
-    hm = HashModel.new(:raw_data=>records)
-    where = hm.where {:something == 7 || (:parameter__type == String && :parameter__required == true)}
+    hash_model = HashModel.new(:raw_data=>records)
+    where = hash_model.where {:something == 7 || (:parameter__type == String && :parameter__required == true)}
 
     puts where
     >> {:switch=>"-x", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :something=>4, :_id=>0, :_group_id=>0}
@@ -159,25 +168,24 @@ These are just a few of the major methods of the class, to see all the functiona
     >> {:switch=>"-z", :parameter=>{:type=>String, :required=>true}, :description=>"zee svitch zu moost calz", :something=>4, :_id=>4, :_group_id=>2}
 
     # You can even search using hash values
-    hm = HashModel.new(:raw_data=>records)
-    where = hm.where {:parameter == {:type => String, :required => true}}
+    hash_model = HashModel.new(:raw_data=>records)
+    where = hash_model.where {:parameter == {:type => String, :required => true}}
     
     puts where
-    
     >> {:switch=>"-x", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :something=>4, :_id=>0, :_group_id=>0}, 
     >> {:switch=>"--xtended", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :something=>4, :_id=>1, :_group_id=>0}
 
 
 ### **Finding Sibling Records : group**
     # Since the HashModel class flattens records it is sometimes useful to know what records were created from the same raw data record.
-    # This works exactly like a where search so you can send just a value or send a block and get all of the sibling records for your search criteria.
+    # This works exactly like a #where search so you can send just a value or send a block and get all of the sibling records for your search criteria.
     records = [
       {:switch => ["-x", "--xtended"], :parameter => {:type => String, :required => true}, :description => "Xish stuff", :something => 4},
       {:switch => ["-y", "--why"],  :description => "lucky what?", :something => 7},
       {:switch => "-z",  :parameter => {:type => Integer, :required => true}, :description => "zee svitch zu moost calz", :something => 4},
     ]
-    hm = HashModel.new(:raw_data=>records)
-    group = hm.group {(:parameter__type == String && :parameter__required == true && :something == 4) || :something == 7}
+    hash_model = HashModel.new(:raw_data=>records)
+    group = hash_model.group {(:parameter__type == String && :parameter__required == true && :something == 4) || :something == 7}
     
     puts group
     >> {:switch=>"-x", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :something=>4, :_id=>0, :_group_id=>0}
@@ -187,14 +195,14 @@ These are just a few of the major methods of the class, to see all the functiona
 
 
 ### **Unflattening records : unflatten**
-    # Anywhere you can add a raw record you can add a flat record
-    hm = HashModel.new
-    hm << {:switch=>"-x", :parameter__type=>String, :parameter__require=>true, :description=>"Xish stuff"}
+    # You can also add flat records in the same way you add raw records. 
+    hash_model = HashModel.new
+    hash_model << {:switch=>"-x", :parameter__type=>String, :parameter__require=>true, :description=>"Xish stuff"}
     
-    puts hm.raw_data
+    puts hash_model.raw_data
     >> {:switch => "-x", :parameter => {:type => String, :require => true}, :description => "Xish stuff"}
     
-    # You can also call the unflatten method yourself on an instance or the class itself and send it a record. (It won't mess with the existing data.)
+    # You can also call the unflatten method on an instance or the class itself and send it a record. (It won't mess with the existing data.)
     deep_hash =  { 
       :parameter__type=>String,
       :switch__deep1__deep3 => "deepTwo",
@@ -216,11 +224,11 @@ These are just a few of the major methods of the class, to see all the functiona
 0.3.0.beta1 - 2011.01.09  
 
 * Changed HashModel\#where searches to use symbols instead of @variables.  
-e.g. hm.where{:x == "x" && :y == "y"} instead of the less natural hm.where{@x == "x" && @y == "y"}  
+e.g. hash_model.where{:x == "x" && :y == "y"} instead of the less natural hash_model.where{@x == "x" && @y == "y"}  
 * Converted the HashModel filter from a proc to a string so it can be viewed and allows the above behavior.  
 * Removed Jeweler and converted to Bundler gem building.
 * Added usage instructions.  
-* To do: Refactor some ugly code, more usage examples?
+* To do: Refactor some ugly code
 
 0.2.0 - 2011.01.08  
 
