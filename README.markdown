@@ -36,7 +36,7 @@ These are just a few of the major methods of the class, to see all the functiona
     >> {:switch=>"-y", :description=>"lucky what?", :_id=>2, :_group_id=>1}  
     >> {:switch=>"--why", :description=>"lucky what?", :_id=>3, :_group_id=>1}  
     >> {:switch=>"-z", :parameter=>{:type=>String}, :description=>"zee svitch zu moost calz", :_id=>4, :_group_id=>2}  
-  
+
 
 ### **Adding hashes after creation : <<, +, add, concat, push**  
     hash_model = HashModel.new  
@@ -61,6 +61,22 @@ These are just a few of the major methods of the class, to see all the functiona
     hash_model << hash_model2
     # or
     hash_model += hash_model2
+  
+    
+### **Accessing the raw data : raw\_data**  
+    # You can always edit and access the raw data via the raw_data property accessor
+    # When you make changes to the raw_data the HashModel will automatically be updated.
+    records = [  
+      {:switch => ["-x", "--xtended"], :parameter => {:type => String, :require => true}, :description => "Xish stuff"},  
+      {:switch => ["-y", "--why"],  :description => "lucky what?"},  
+      {:switch => "-z",  :parameter => {:type => String}, :description => "zee svitch zu moost calz"},  
+    ]  
+    hm = HashModel.new(:raw_data=>records) 
+    
+    puts hm.raw_data
+    >> {:switch => ["-x", "--xtended"], :parameter => {:type => String, :require => true}, :description => "Xish stuff"}  
+    >> {:switch => ["-y", "--why"],  :description => "lucky what?"}  
+    >> {:switch => "-z",  :parameter => {:type => String}, :description => "zee svitch zu moost calz"}  
   	
   
 ### **Iterating over the HashModel : each**
@@ -130,7 +146,7 @@ These are just a few of the major methods of the class, to see all the functiona
 
 ### **Finding Sibling Records : group**
     # Since the HashModel class flattens records it is sometimes useful to know what records were created from the same raw data record.
-    # This works exactly like a where search so you can send just a value or send a block
+    # This works exactly like a where search so you can send just a value or send a block and get all of the sibling records for your search criteria.
     records = [
       {:switch => ["-x", "--xtended"], :parameter => {:type => String, :required => true}, :description => "Xish stuff", :something => 4},
       {:switch => ["-y", "--why"],  :description => "lucky what?", :something => 7},
@@ -139,34 +155,59 @@ These are just a few of the major methods of the class, to see all the functiona
     hm = HashModel.new(:raw_data=>records)
     group = hm.group {(:parameter__type == String && :parameter__required == true && :something == 4) || :something == 7}
     
+    puts group
     >> {:switch=>"-x", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :something=>4, :_id=>0, :_group_id=>0}
     >> {:switch=>"--xtended", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :something=>4, :_id=>1, :_group_id=>0}
     >> {:switch=>"-y", :description=>"lucky what?", :something=>7, :_id=>2, :_group_id=>1}
     >> {:switch=>"--why", :description=>"lucky what?", :something=>7, :_id=>3, :_group_id=>1}
 
 
+### **Unflattening records : unflatten**
+    # Anywhere you can add a raw record you can add a flat record
+    hm = HashModel.new
+    hm << {:switch=>"-x", :parameter__type=>String, :parameter__require=>true, :description=>"Xish stuff"}
+    
+    puts hm.raw_data
+    >> {:switch => "-x", :parameter => {:type => String, :require => true}, :description => "Xish stuff"}
+    
+    # You can also call the unflatten method yourself on an instance or the class itself and send it a record. (It won't mess with the existing data.)
+    deep_hash =  { 
+      :parameter__type=>String,
+      :switch__deep1__deep3 => "deepTwo",
+      :parameter__type__ruby=>true,
+      :parameter => "glorp",
+      :parameter__require=>true,
+      :switch__deep2 => "deepTwo",
+      :description=>"Xish stuff",
+      :switch => "--xtend",
+    }
+    unflat = HashModel.unflatten(deep_hash) 
+  
+    puts unflat
+    >> {:parameter=>[{:type=>String}, "glorp", {:require=>true}], :switch=>[{:deep1=>{:deep3=>"deepTwo"}}, {:deep2=>"deepTwo"}, "--xtend"], :description=>"Xish stuff"}
+  
+
 ## Version History
 
-0.3.0  
-* Changed where searches to use symbols instead of @variables. e.g. {:x == "x" && :y == "y"} instead of the less natural {@x == "x" && @y == "y"}  
-* Converted the HashModel filter to a string so it can be viewed and allows the above behavior.  
-- To do: allow subtractions.  
-* Removed Jeweler and converted to Bundler gem building.  
+0.3.0.pre1  
+* Changed HashModel\#where searches to use symbols instead of @variables. e.g. hm.where{:x == "x" && :y == "y"} instead of the less natural hm.where{@x == "x" && @y == "y"}  
+* Converted the HashModel filter from a proc to a string so it can be viewed and allows the above behavior.  
+* Removed Jeweler and converted to Bundler gem building.
+* Added usage instructions.  
+* To do: Refactor some ugly code, more usage examples?
 
-0.2.0   
+0.2.0 
 * Fixed bug if first field name is shorter version of another field name, e.g. :short then :shorter would cause an error.  
 * Added unflattening records and adding unflattened records.  
 * Changed field separator to double underscores (to allow unflattening)  
 * Removed namespace module, it was annoying. Now just instantiate it with HashModel.new instead of MikBe::HashModel.new  
 * Now allows a single hash, instead of an array of hashes, when creating with HashModel.new(:raw_data => hash)  
 
-0.1.1 Moved to new RubyGems account  
+0.1.1   
+* Moved to new RubyGems account  
 
-0.1.0 Initial publish  
-
-## Planned updates
-
-* Allow subtraction of records (flattened, unflattened, or other HashModels)
+0.1.0  
+* Initial publish  
 
 == Contributing to hash\_model
 
