@@ -18,6 +18,12 @@ Searches are very You can also search using boolean like logic e.g.
     @hm = HashModel.new(:raw_data=>@records)  
     found = @hm.where {:switch == "-x" && :parameter__type == String}  
 
+
+## Status
+
+###**Beta: Probably good to go but needs some more real-world testing**###  
+The latest version is still beta but mostly because I didn't realize little time it would take to get the changes I wanted done in version 0.3.0 and I didn't want to release 0.2.0 and 0.3.0 within a day of each other.
+
 ## Usage
 
 These are just a few of the major methods of the class, to see all the functionality take a look at the RSpec files.
@@ -189,38 +195,45 @@ These are just a few of the major methods of the class, to see all the functiona
 
 ## Version History
 
-0.3.0.pre1  
-* Changed HashModel\#where searches to use symbols instead of @variables. e.g. hm.where{:x == "x" && :y == "y"} instead of the less natural hm.where{@x == "x" && @y == "y"}  
+0.3.0.beta1 - 2011.01.09  
+
+* Changed HashModel\#where searches to use symbols instead of @variables.  
+e.g. hm.where{:x == "x" && :y == "y"} instead of the less natural hm.where{@x == "x" && @y == "y"}  
 * Converted the HashModel filter from a proc to a string so it can be viewed and allows the above behavior.  
 * Removed Jeweler and converted to Bundler gem building.
 * Added usage instructions.  
 * To do: Refactor some ugly code, more usage examples?
 
-0.2.0 
+0.2.0 - 2011.01.08  
+
 * Fixed bug if first field name is shorter version of another field name, e.g. :short then :shorter would cause an error.  
 * Added unflattening records and adding unflattened records.  
 * Changed field separator to double underscores (to allow unflattening)  
 * Removed namespace module, it was annoying. Now just instantiate it with HashModel.new instead of MikBe::HashModel.new  
 * Now allows a single hash, instead of an array of hashes, when creating with HashModel.new(:raw_data => hash)  
 
-0.1.1   
-* Moved to new RubyGems account  
+0.1.1 - 2010.12.15   
 
-0.1.0  
+* Moved to proper RubyGems account  
+
+0.1.0 - 2010.12.15  
+
 * Initial publish  
+* Released on wrong RubyGems account (yanked)
 
-== Contributing to hash\_model
 
-* Please feel free to correct any mistakes I make by correcting the code and sending me a pull request. Pull requests are handled ASAP.
+##Contributing to HashModel
+
+* Pull requests are handled ASAP.
 * Check out the latest master to make sure the feature hasn't been implemented or the bug hasn't been fixed yet
 * Check out the issue tracker to make sure someone already hasn't requested it and/or contributed it
 * Fork the project  
 * Start a feature/bugfix branch  
 * Commit and push until you are happy with your contribution  
-* Make sure to add tests for it. This is important so I don't break it in a future version unintentionally.
-* Please try not to mess with the Rakefile, version, or history. If you want to have your own version, or is otherwise necessary, that is fine, but please isolate to its own commit so I can cherry-pick around it.
+* Make sure to add RSpecs in a separate file so I can easily tell what changed (changes without specs will not be pulled) for it.
+* Changes to the configuration files, version numbers, or branches will not be pulled. If you want to have your own version, or is otherwise necessary, that is fine, but please isolate to its own commit so I can cherry-pick around it.
 
-== Copyright
+##Copyright
 
 Copyright (c) 2010 Mike Bethany. See LICENSE.txt for further details.
 

@@ -6,4 +6,4 @@ The Cucumber methodologies don't seem to be necessary most of the time since
 RSpec seems to be a more natural fit for a programming library. I'm probably
 wrong but it really does seem to be a lot of redundancy for this application.
 
-Oh, plus they suck... I'm still learning.
+Oh, plus my feature specs suck... I'm still learning.
