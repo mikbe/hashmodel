@@ -13,10 +13,21 @@ model class take a look at ActiveModel, it's probably more of what you're lookin
 The major usefulness of this class is it allows you to filter and search flattened records based on any field.
 A field can contain anything, including another hash, a string, an array, or even an Object class like String or Array, not just an instance of an Object class.
 
-Searches are very You can also search using boolean like logic e.g.  
+Searches are very simple and logical. You can search using just using the value of the default index 
+
+    records = [  
+      {:switch => ["-x", "--xtended"], :parameter => {:type => String, :require => true}, :description => "Xish stuff"},  
+      {:switch => ["-y", "--why"],  :description => "lucky what?"},  
+      {:switch => "-z",  :parameter => {:type => String}, :description => "zee svitch zu moost calz"},  
+    ]  
+    hm = HashModel.new(:raw_data=>records)  
+    found = hm.where("-x")  => Returns an array of flattened records  
+
+
+Or more powerfully you can search using boolean like logic e.g.  
    
-    @hm = HashModel.new(:raw_data=>@records)  
-    found = @hm.where {:switch == "-x" && :parameter__type == String}  
+    hm = HashModel.new(:raw_data=>records)  
+    found = hm.where {:switch == "-x" && :parameter__type == String}  => Returns an array of flattened records  
 
 
 ## Status
@@ -43,6 +54,9 @@ These are just a few of the major methods of the class, to see all the functiona
     >> {:switch=>"--why", :description=>"lucky what?", :_id=>3, :_group_id=>1}  
     >> {:switch=>"-z", :parameter=>{:type=>String}, :description=>"zee svitch zu moost calz", :_id=>4, :_group_id=>2}  
 
+### **Group ID's and Record ID's**
+    # You may have noticed that there are two fields you didn't add in the flattened records. These are the :_id field and the :_group_id fields.
+    # :_id is a unique ID for the flattened record while :_group_id is unique to the raw record you used to create the HashModel record.
 
 ### **Adding hashes after creation : <<, +, add, concat, push**  
     hash_model = HashModel.new  
