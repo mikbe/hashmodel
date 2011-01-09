@@ -4,9 +4,10 @@ A simple MVC type model class for storing deeply nested hashes as records.
 It's meant to be used for small, in-memory recordset that you want an easy, flexible way to query.
 It is not meant as a data storage device for managing huge datasets.
 
-Note: 
-This is more of a programming exercise to learn about Ruby so if you're looking for a good
-model class take a look at ActiveModel, it's probably more of what you're looking for.
+Note:   
+This started out as a programming exercise to learn more about Ruby but is now fairly well featured so can be quite useful.
+It is not however a thoroughly tested or industrial strength model and it's not meant to be used to parse your entire user database.
+If you're looking for an excellent model class take a look at ActiveModel, it's probably more of what you're looking for.
 
 ## Synopsis
 
@@ -33,7 +34,10 @@ Or more powerfully you can search using boolean like logic e.g.
 ## Status
 
 ###**Beta: Probably good to go but needs some more real-world testing**###  
-The latest version is still beta but mostly because I didn't realize little time it would take to get the changes I wanted done in version 0.3.0 and I didn't want to release 0.2.0 and 0.3.0 within a day of each other.
+
+The latest version is still beta but mostly because I didn't realize little time it would take to get the changes I wanted done in version 0.3.0 and I didn't want to release 0.2.0 and 0.3.0 within a day of each other.  
+
+I expect the design to stay pretty stable from this point forward so no more surprising changes in the design or its use.
 
 ## Usage
 
