@@ -632,7 +632,61 @@ describe "HashModel" do
     
     end # not in place
 
-    # Possible addition
+    context "using blocks" do
+      
+      it "should search using a single value boolean block" do
+        @hm.where {:switch == "-x"}.should == [@flat_records[0]]
+      end
+
+      it "should search using a complex boolean block" do
+        records = [
+          {:switch => ["-x", "--xtended"], :parameter => {:type => String, :required => true}, :description => "Xish stuff", :something => 4},
+          {:switch => ["-y", "--why"],  :description => "lucky what?"},
+          {:switch => "-z",  :parameter => {:type => String, :required => true}, :description => "zee svitch zu moost calz", :something => 4},
+        ]
+        @hm = HashModel.new(:raw_data=>records)
+        @hm.where {:something == 4 && :parameter__required == true}.should == [
+          {:switch=>"-x", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :something=>4, :_id=>0, :_group_id=>0},
+          {:switch=>"--xtended", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :something=>4, :_id=>1, :_group_id=>0},
+          {:switch=>"-z", :parameter=>{:type=>String, :required=>true}, :description=>"zee svitch zu moost calz", :something=>4, :_id=>4, :_group_id=>2}
+        ]
+        @hm.where {:parameter__type == String && :parameter__required == true && :something == 4}.should == [
+          {:switch=>"-x", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :something=>4, :_id=>0, :_group_id=>0},
+          {:switch=>"--xtended", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :something=>4, :_id=>1, :_group_id=>0},
+          {:switch=>"-z", :parameter=>{:type=>String, :required=>true}, :description=>"zee svitch zu moost calz", :something=>4, :_id=>4, :_group_id=>2}
+        ]
+      end
+
+      it "should search using a complex, multi-line boolean block" do
+        records = [
+          {:switch => ["-x", "--xtended"], :parameter => {:type => String, :required => true}, :description => "Xish stuff", :something => 4},
+          {:switch => ["-y", "--why"],  :description => "lucky what?", :something => 7},
+          {:switch => "-z",  :parameter => {:type => Integer, :required => true}, :description => "zee svitch zu moost calz", :something => 4},
+        ]
+        @hm = HashModel.new(:raw_data=>records)
+        @hm.where {(:parameter__type == String && :parameter__required == true && :something == 4) || :something == 7}.should == [
+          {:switch=>"-x", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :something=>4, :_id=>0, :_group_id=>0}, 
+          {:switch=>"--xtended", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :something=>4, :_id=>1, :_group_id=>0}, 
+          {:switch=>"-y", :description=>"lucky what?", :something=>7, :_id=>2, :_group_id=>1}, 
+          {:switch=>"--why", :description=>"lucky what?", :something=>7, :_id=>3, :_group_id=>1}
+        ]
+      end
+    
+      it "should search with nested hashes in a block" do
+        records = [
+          {:switch => ["-x", "--xtended"], :parameter => {:type => String, :required => true}, :description => "Xish stuff", :something => 4},
+          {:switch => ["-y", "--why"],  :description => "lucky what?", :something => 7},
+          {:switch => "-z",  :parameter => {:type => Integer, :required => true}, :description => "zee svitch zu moost calz", :something => 4},
+        ]
+        @hm = HashModel.new(:raw_data=>records)
+        @hm.where {:parameter == {:type => String, :required => true}}.should == [
+          {:switch=>"-x", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :something=>4, :_id=>0, :_group_id=>0}, 
+          {:switch=>"--xtended", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :something=>4, :_id=>1, :_group_id=>0}
+        ]
+      end
+      
+    end
+
     it "should return false if tested for inclusion of anything other than a hash" do
       @hm.include?([:switch=>"-x"]).should == false
     end
@@ -692,14 +746,42 @@ describe "HashModel" do
       end 
     
       it "should return the records in the same raw data record when using a block" do
-        @hm.group{@switch == "-y"}.should == [@flat_records[2], @flat_records[3]]
+        @hm.group{:switch == "-y"}.should == [@flat_records[2], @flat_records[3]]
       end
     
-      it "should work across group_id's if searching for something that returns records from multiple groups" do
-        @hm.group{@parameter__type == String}.should == [
+      it "should group across group_id's if searching for something that returns records from multiple groups" do
+        @hm.group{:parameter__type == String}.should == [
           {:switch=>"-x", :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>0, :_group_id=>0}, 
           {:switch=>"--xtended", :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>1, :_group_id=>0},
           {:switch => "-z",  :parameter => {:type => String}, :description => "zee svitch zu moost calz", :_id=>4, :_group_id=>2}
+        ]
+      end
+    
+      it "should group with a complex block" do
+        records = [
+          {:switch => ["-x", "--xtended"], :parameter => {:type => String, :required => true}, :description => "Xish stuff", :something => 4},
+          {:switch => ["-y", "--why"],  :description => "lucky what?", :something => 7},
+          {:switch => "-z",  :parameter => {:type => Integer, :required => true}, :description => "zee svitch zu moost calz", :something => 4},
+        ]
+        @hm = HashModel.new(:raw_data=>records)
+        @hm.group {(:parameter__type == String && :parameter__required == true && :something == 4) || :something == 7}.should == [
+          {:switch=>"-x", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :something=>4, :_id=>0, :_group_id=>0}, 
+          {:switch=>"--xtended", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :something=>4, :_id=>1, :_group_id=>0}, 
+          {:switch=>"-y", :description=>"lucky what?", :something=>7, :_id=>2, :_group_id=>1}, 
+          {:switch=>"--why", :description=>"lucky what?", :something=>7, :_id=>3, :_group_id=>1}
+        ]
+      end
+    
+      it "should group with nested hashes block" do
+        records = [
+          {:switch => ["-x", "--xtended"], :parameter => {:type => String, :required => true}, :description => "Xish stuff", :something => 4},
+          {:switch => ["-y", "--why"],  :description => "lucky what?", :something => 7},
+          {:switch => "-z",  :parameter => {:type => Integer, :required => true}, :description => "zee svitch zu moost calz", :something => 4},
+        ]
+        @hm = HashModel.new(:raw_data=>records)
+        @hm.group {:parameter == {:type => String, :required => true}}.should == [
+          {:switch=>"-x", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :something=>4, :_id=>0, :_group_id=>0}, 
+          {:switch=>"--xtended", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :something=>4, :_id=>1, :_group_id=>0}
         ]
       end
     

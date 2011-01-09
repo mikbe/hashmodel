@@ -194,7 +194,13 @@ class HashModel
     else
       # Convert the proc to a string so it can be viewed
       # and later have :'s turned into @'s
-      string_search = search.to_source.match(/^proc { (.*) }$/)[1]
+      
+      # Sourcify can create single or multi-line procs
+      source = search.to_source
+      unless (match = source.match(/^proc do\n(.*)\nend$/))
+        match = source.match(/^proc { (.*) }$/)
+      end
+      string_search = match[1]
     end # !value.nil?
     
     # Set and process the filter
@@ -248,9 +254,21 @@ class HashModel
         new_record.merge!( duplicate_data.merge!( { :_id=>(id+=1), :_group_id=>group_id } ) )
       end 
       
+      # Change the filter so it looks for variables instead of symbols
+      unless @filter.nil?
+        proc_filter = @filter.clone
+        proc_filter.scan(/(:\S+) ==/).each {|match| proc_filter.sub!(match[0], match[0].sub(":","@"))}
+        proc_filter.sub!(":_group_id", "@_group_id")
+        proc_filter = "proc { #{proc_filter} }.call"
+      end
+
       # Add the records to modified data if they pass the filter
       new_records.each do |new_record|
-        @modified_data << new_record if @filter.nil? ? true : (create_object_from_flat_hash(new_record).instance_eval( "proc { #{@filter} }.call".gsub(":", "@") ) )
+        unless @filter.nil?
+          @modified_data << new_record if create_object_from_flat_hash(new_record).instance_eval proc_filter
+        else
+          @modified_data << new_record
+        end
       end
 
     end # raw_data.each

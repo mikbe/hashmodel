@@ -11,17 +11,16 @@ model class take a look at ActiveModel, it's probably more of what you're lookin
 ## Synopsis
 
 The major usefulness of this class is it allows you to filter and search flattened records based on any field.
-A field can contain anything, including another hash, a string, and array, or even an Object class like String or Array, not
-just an instance of an Object class.
+A field can contain anything, including another hash, a string, an array, or even an Object class like String or Array, not just an instance of an Object class.
 
-You can also search using boolean like logic e.g.  
+Searches are very You can also search using boolean like logic e.g.  
    
-@hm = HashModel.new(:raw\_data=>@records)  
-found = @hm.where {@switch == "-x" && @parameter\_type == String}  
+    @hm = HashModel.new(:raw_data=>@records)  
+    found = @hm.where {:switch == "-x" && :parameter__type == String}  
 
 ## Usage
 
-Just simple examples for now, waiting till I get a little more stable to do more in depth, for now look at the spec files for usage.
+These are just a few of the major methods of the class, to see all the functionality take a look at the RSpec files.
 
 ### **Creating with an array of hashes**  
     records = [  
@@ -39,14 +38,16 @@ Just simple examples for now, waiting till I get a little more stable to do more
     >> {:switch=>"-z", :parameter=>{:type=>String}, :description=>"zee svitch zu moost calz", :_id=>4, :_group_id=>2}  
   
 
-### **Adding hashes after creation**  
+### **Adding hashes after creation : <<, +, add, concat, push**  
     hash_model = HashModel.new  
-    hash_model << records[0]
-    hash_model << records[1]
-    hash_model << records[2]
+    hash_model += records[0]
+    hash_model.concat records[1]
+    hash_model.push records[2]
   
   
 ### **Adding another hash model**  
+    # You can also add another HashModel object to the existing one
+    # and it will add the raw records and reflatten.
     records = [  
       {:switch => ["-x", "--xtended"], :parameter => {:type => String, :require => true}, :description => "Xish stuff"},  
       {:switch => ["-y", "--why"],  :description => "lucky what?"}
@@ -60,45 +61,97 @@ Just simple examples for now, waiting till I get a little more stable to do more
     hash_model << hash_model2
     # or
     hash_model += hash_model2
-		
-
-### **Iterating over the HashModel**
+  	
+  
+### **Iterating over the HashModel : each**
     # the HashModel acts a lot like an array so you can iterate over it
     hash_model = HashModel.new(:raw_data=>records)  
     hash_model.each do |record|
       # record is a hash
     end
-
-### **Flatten Index**
+  
+  
+### **Flattening records : flatten_index**
     # Flatten index is automatically set to the first field ever given
     # but you can change it
     hash_model = HashModel.new(:raw_data=>records)  
 		
     puts hash_model.flatten_index
+    >> :switch
+    
     # you can use flattened field names
     hash_model.flatten_index = :parameter__type
+
+    puts hash_model.flatten_index
+    >> :parameter__type
+
     puts hash_model
-		
     >> {:parameter__type=>String, :switch=>["-x", "--xtended"], :parameter__require=>true, :description=>"Xish stuff", :_id=>0, :_group_id=>0}
     >> {:parameter__type=>nil, :switch=>["-y", "--why"], :description=>"lucky what?", :_id=>1, :_group_id=>1}
     >> {:parameter__type=>String, :switch=>"-z", :description=>"zee svitch zu moost calz", :_id=>2, :_group_id=>2}
 
-    # Notice that records that don't have the flatten index field have their value set to nil		
+    # Notice that records that don't have the flatten index field have that field added and the value is set to nil		
 		
 
-### **Accessing Records**
-    # You can use the values of the default flatten_index to retrieve the a record
-    hash_model = HashModel.new(:raw_data=>records)  
-		
-    puts hash_model.where("-x")
+### **Searching Records : where**
+    # This is where the real power of the library is. You can do complex boolean searches using flattened field names.
+    
+    # You can search using just a value and it will search based on the flatten_index
+    records = [
+      {:switch => ["-x", "--xtended"], :parameter => {:type => String, :required => true}, :description => "Xish stuff", :something => 4},
+      {:switch => ["-y", "--why"],  :description => "lucky what?", :something => 7},
+      {:switch => "-z",  :parameter => {:type => String, :required => true}, :description => "zee svitch zu moost calz", :something => 4},
+    ]
+    hm = HashModel.new(:raw_data=>records)
+    where = hm.where("-x")
+
+    puts where
+    >> {:switch=>"-x", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :something=>4, :_id=>0, :_group_id=>0}
+    
+    # Best of all you can use complex boolean searches using normal and flattend field names.
+    # Note that flattened field names are seperated with double under lines __
+    hm = HashModel.new(:raw_data=>records)
+    where = hm.where {:something == 7 || (:parameter__type == String && :parameter__required == true)}
+
+    puts where
+    >> {:switch=>"-x", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :something=>4, :_id=>0, :_group_id=>0}
+    >> {:switch=>"--xtended", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :something=>4, :_id=>1, :_group_id=>0}
+    >> {:switch=>"-z", :parameter=>{:type=>String, :required=>true}, :description=>"zee svitch zu moost calz", :something=>4, :_id=>4, :_group_id=>2}
+
+    # You can even search using hash values
+    hm = HashModel.new(:raw_data=>records)
+    where = hm.where {:parameter == {:type => String, :required => true}}
+    
+    puts where
+    
+    >> {:switch=>"-x", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :something=>4, :_id=>0, :_group_id=>0}, 
+    >> {:switch=>"--xtended", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :something=>4, :_id=>1, :_group_id=>0}
+
+
+### **Finding Sibling Records : group**
+    # Since the HashModel class flattens records it is sometimes useful to know what records were created from the same raw data record.
+    # This works exactly like a where search so you can send just a value or send a block
+    records = [
+      {:switch => ["-x", "--xtended"], :parameter => {:type => String, :required => true}, :description => "Xish stuff", :something => 4},
+      {:switch => ["-y", "--why"],  :description => "lucky what?", :something => 7},
+      {:switch => "-z",  :parameter => {:type => Integer, :required => true}, :description => "zee svitch zu moost calz", :something => 4},
+    ]
+    hm = HashModel.new(:raw_data=>records)
+    group = hm.group {(:parameter__type == String && :parameter__required == true && :something == 4) || :something == 7}
+    
+    >> {:switch=>"-x", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :something=>4, :_id=>0, :_group_id=>0}
+    >> {:switch=>"--xtended", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :something=>4, :_id=>1, :_group_id=>0}
+    >> {:switch=>"-y", :description=>"lucky what?", :something=>7, :_id=>2, :_group_id=>1}
+    >> {:switch=>"--why", :description=>"lucky what?", :something=>7, :_id=>3, :_group_id=>1}
+
 
 ## Version History
 
-0.3.0 
-* Changed where searches to use symbols instead of @variables. e.g. {:x == "x" && :y == "y"} instead of the less natural {@x == "x" && @y == "y"}
-* Converted the HashModel filter to a string so it can be viewed and allows the above behavior.
-- To do: allow subtractions
-* Removed Jeweler and converted to Bundler gem building.
+0.3.0  
+* Changed where searches to use symbols instead of @variables. e.g. {:x == "x" && :y == "y"} instead of the less natural {@x == "x" && @y == "y"}  
+* Converted the HashModel filter to a string so it can be viewed and allows the above behavior.  
+- To do: allow subtractions.  
+* Removed Jeweler and converted to Bundler gem building.  
 
 0.2.0   
 * Fixed bug if first field name is shorter version of another field name, e.g. :short then :shorter would cause an error.  
