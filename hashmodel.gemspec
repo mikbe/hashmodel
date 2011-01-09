@@ -11,6 +11,7 @@ Gem::Specification.new do |s|
   s.homepage    = "http://github.com/mikbe/hashmodel"
   s.summary     = %q{Store small amounts of dynamic data and easily search fields (even nested ones)}
   s.description = %q{A simple MVC type model class for storing records as an array of hashes. You can store deeply nested hashes and still easily flatten and querying the records using flattened field names.}
+  s.required_ruby_version = '>= 1.8.6'
 
   s.add_dependency "sourcify"
   s.add_dependency "file-tail"
