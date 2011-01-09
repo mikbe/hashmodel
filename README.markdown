@@ -16,6 +16,7 @@ A field can contain anything, including another hash, a string, an array, or eve
 
 Searches are very simple and logical. You can search using just using the value of the default index 
 
+    require 'hashmodel'
     records = [  
       {:switch => ["-x", "--xtended"], :parameter => {:type => String, :require => true}, :description => "Xish stuff"},  
       {:switch => ["-y", "--why"],  :description => "lucky what?"},  
@@ -33,17 +34,22 @@ Or more powerfully you can search using boolean like logic e.g.
 
 ## Status
 
-###**Beta: Probably good to go but needs some more real-world testing**###  
+###**Beta: Probably good to go but needs some more real-world testing**  
 
 The latest version is still beta but mostly because I didn't realize how quickly I would get the changes I wanted done for version 0.3.0 and I didn't want to release 0.2.0 and 0.3.0 within a day of each other.  
 
 I expect the design to stay pretty stable from this point forward so no more surprising changes in the design or its use.
+
+## Developer Notes
+
+If you have problems running Autotest on your RSpecs try including the gem file-tail in your app. You **shouldn't** have to since I include it here but I had problems with Autotest and Sourcify and adding that fixed it.
 
 ## Usage
 
 I've covered most of the major stuff here but to see all of the functionality take a look at the RSpec files.
 
 ### **Creating with an array of hashes**  
+    require 'hashmodel'
     records = [  
       {:switch => ["-x", "--xtended"], :parameter => {:type => String, :require => true}, :description => "Xish stuff"},  
       {:switch => ["-y", "--why"],  :description => "lucky what?"},  
@@ -221,9 +227,10 @@ I've covered most of the major stuff here but to see all of the functionality ta
 
 ## Version History
 
-0.3.0.beta1 - 2011.01.09  
+0.3.0.beta2 - 2011.01.09  
 
-* Changed HashModel\#where searches to use symbols instead of @variables.  
+* Changed name for require to mirror name of app (require 'hashmodel' instead of confusing require 'hash_model')
+* HashModel\#where searches can now use symbols instead of @variables (you can still use @ if you want).  
 e.g. hash_model.where{:x == "x" && :y == "y"} instead of the less natural hash_model.where{@x == "x" && @y == "y"}  
 * Converted the HashModel filter from a proc to a string so it can be viewed and allows the above behavior.  
 * Removed Jeweler and converted to Bundler gem building.
