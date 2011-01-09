@@ -13,7 +13,8 @@ Gem::Specification.new do |s|
   s.description = %q{A simple MVC type model class for storing records as an array of hashes. You can store deeply nested hashes and still easily flatten and querying the records using flattened field names.}
 
   s.add_dependency "sourcify"
-
+  s.add_dependency "file-tail"
+  
   s.add_development_dependency "rspec"
   s.add_development_dependency "cucumber"
 

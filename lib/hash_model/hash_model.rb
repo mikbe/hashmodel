@@ -15,7 +15,7 @@ class HashModel
 
     # Allow a single hash to be added with :raw_data
     @raw_data = [@raw_data] if @raw_data.class == Hash
-    
+
     check_field_names(@raw_data) if !@raw_data.empty?
     
     # Setup the flat data
@@ -25,7 +25,7 @@ class HashModel
 
   ## Properties
 
-  attr_accessor :flatten_index, :raw_data
+  attr_accessor :flatten_index, :raw_data, :filter
 
   # Sets field name used to flatten the recordset
   def flatten_index=(value)
@@ -36,6 +36,11 @@ class HashModel
   # Are the records being filtered?
   def filtered?
     !!@filter
+  end
+
+  def filter=(filter)
+    @filter = filter
+    flatten
   end
 
   # Trap changes to raw data so we can re-flatten the data
@@ -73,6 +78,13 @@ class HashModel
     @filter = nil
   end
 
+  # Force arrays to be cloned
+  def clone
+    hm = HashModel.new(:raw_data=>@raw_data.clone)
+    hm.flatten_index = @flatten_index
+    hm.filter = @filter
+    hm
+  end
 
   ## Operators
   
@@ -160,7 +172,7 @@ class HashModel
     self.clone.where!(value, &search)
   end
 
-  # Search the flattened records using a 
+  # Search the flattened records using the default flatten index or a boolean block
   def where!(value=nil, &search)
     # Parameter checks
     raise SyntaxError, "You may only provide a parameter or a block but not both" if value && !search.nil?
@@ -174,15 +186,16 @@ class HashModel
     # If given a parameter make our own search based on the flatten index
     unless value.nil?
       # Make sure the field name is available to the proc
-      flatten_index = @flatten_index 
-      search = proc do
-        instance_variable_get("@#{flatten_index}") == value
-      end # search
+      if value.class == String
+        string_search = ":#{@flatten_index} == \"#{value}\"".to_s
+      else
+        string_search = ":#{@flatten_index} == #{value}".to_s
+      end
+    else
+      # Convert the proc to a string so it can be viewed
+      # and later have :'s turned into @'s
+      string_search = search.to_source.match(/^proc { (.*) }$/)[1]
     end # !value.nil?
-
-    # Convert the proc to a string so it can be viewed
-    # and later have :'s turned into @'s
-    string_search = search.to_source.match(/^proc { \((.*)\) }$/)[1]
     
     # Set and process the filter
     @filter = string_search
@@ -191,33 +204,19 @@ class HashModel
 
   # Return the other records created from the same raw data record as the one(s) searched for
   def group(value=nil, &search)
-    if !value.nil? || !search.nil?
-      sibling = where(value, &search)
-    else
-      sibling = where &@filter
-    end
-    
-    # Get all the unique group id's
-    group_ids = sibling.collect {|hash| hash[:_group_id]}.uniq
-    
-    # Find any records with matching group ids
-    where {group_ids.include? @_group_id}
+    self.clone.group!(value, &search)
   end
   
-  # Group the records in place based on the existing filter
-  # This is basically a short hand for filtering based on
-  # group ids of filtered records
+  # Filter in place based on the parent record 
   def group!(value=nil, &search)
-    
+    # Filter the recordset if applicable
     if !value.nil? || !search.nil?
       where!(value, &search)
     end
-    
     # Get all the unique group id's
     group_ids = @modified_data.collect {|hash| hash[:_group_id]}.uniq
-
-    # Find any records with matching group ids
-    where! {group_ids.include? @_group_id}
+    self.filter = "#{group_ids.to_s}.include? :_group_id"
+    flatten
   end
 
   # Find the raw data record for a given flat record
@@ -250,8 +249,8 @@ class HashModel
       end 
       
       # Add the records to modified data if they pass the filter
-      new_records.each do |new_record| 
-        @modified_data << new_record if @filter.nil? ? true : (create_object_from_flat_hash(new_record).instance_eval( "proc { (#{@filter}) }.call".gsub(":", "@") ) )
+      new_records.each do |new_record|
+        @modified_data << new_record if @filter.nil? ? true : (create_object_from_flat_hash(new_record).instance_eval( "proc { #{@filter} }.call".gsub(":", "@") ) )
       end
 
     end # raw_data.each

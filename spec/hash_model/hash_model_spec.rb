@@ -632,6 +632,7 @@ describe "HashModel" do
     
     end # not in place
 
+    # Possible addition
     it "should return false if tested for inclusion of anything other than a hash" do
       @hm.include?([:switch=>"-x"]).should == false
     end

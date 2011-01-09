@@ -21,3 +21,15 @@ def create_proc_tester(property_value_hash)
 
   proc_test
 end
+
+
+# Debug print
+module Kernel
+  def dp(value)
+    puts ""
+    puts "*" * 40
+    puts "value: #{value}"
+    puts "&" * 40
+    puts ""
+  end
+end
