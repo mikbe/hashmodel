@@ -34,9 +34,9 @@ Or more powerfully you can search using boolean like logic e.g.
 
 ## Status
 
-###**Beta: Probably good to go but needs some more real-world testing**  
+###**Beta**  
 
-The latest version is still beta but mostly because I didn't realize how quickly I would get the changes I wanted done for version 0.3.0 and I didn't want to release 0.2.0 and 0.3.0 within a day of each other.  
+I'm doing real-world testing now and am fixing design holes and adding functionality so I wouldn't use this version until I'm done. None of the previous versions were all that useful but after I release this version I'll only develop in branches.
 
 I expect the design to stay pretty stable from this point forward so no more surprising changes in the design or its use.
 
@@ -227,15 +227,17 @@ I've covered most of the major stuff here but to see all of the functionality ta
 
 ## Version History
 
-0.3.0.beta2 - 2011.01.09  
+0.3.0.beta4 - 2011.01.09  
 
-* Changed name for require to mirror name of app (require 'hashmodel' instead of confusing require 'hash_model')
 * HashModel\#where searches can now use symbols instead of @variables (you can still use @ if you want).  
 e.g. hash_model.where{:x == "x" && :y == "y"} instead of the less natural hash_model.where{@x == "x" && @y == "y"}  
 * Converted the HashModel filter from a proc to a string so it can be viewed and allows the above behavior.  
-* Removed Jeweler and converted to Bundler gem building.
+* Changed name for require to mirror name of app (require 'hashmodel' instead of confusing require 'hash_model')  
+* Added flatten to accessors (to\_s, to\_a, to\_ary) so they'll return flattened data if called without anything else happening first.  
+* Fixed design flaw that didn't allow arrays of arrays to be used as values or arrays as searches.  
+* Removed Jeweler and converted to Bundler gem building.  
 * Added usage instructions.  
-* To do: Refactor some ugly code
+* To do: Refactor some ugly code  
 
 0.2.0 - 2011.01.08  
 

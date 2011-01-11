@@ -29,8 +29,23 @@ class HashModel
 
   # Sets field name used to flatten the recordset
   def flatten_index=(value)
+    old_flatten = @flatten_index
     @flatten_index = value
     flatten
+    
+    # Verify the flatten index is a valid index
+    flatten_found = false
+    @modified_data.each do |record|
+      break (flatten_found = true) if record[value]
+    end
+    
+    unless flatten_found
+      @flatten_index = old_flatten
+      flatten 
+      raise ArgumentError, "Flatten index could not be created: #{flatten_index}"
+    end
+
+    self
   end
 
   # Are the records being filtered?
@@ -78,7 +93,7 @@ class HashModel
     @filter = nil
   end
 
-  # Force arrays to be cloned
+  # Force internal arrays to be cloned
   def clone
     hm = HashModel.new(:raw_data=>@raw_data.clone)
     hm.flatten_index = @flatten_index
@@ -186,16 +201,19 @@ class HashModel
     # If given a parameter make our own search based on the flatten index
     unless value.nil?
       # Make sure the field name is available to the proc
-      if value.class == String
-        string_search = ":#{@flatten_index} == \"#{value}\"".to_s
-      else
-        string_search = ":#{@flatten_index} == #{value}".to_s
+      case value
+        when String
+          string_search = ":#{@flatten_index} == \"#{value}\"".to_s
+        when Symbol
+          string_search = ":#{@flatten_index} == :#{value}".to_s
+        else
+          string_search = ":#{@flatten_index} == #{value}".to_s
       end
     else
       # Convert the proc to a string so it can be viewed
       # and later have :'s turned into @'s
       
-      # Sourcify can create single or multi-line procs
+      # Sourcify can create single or multi-line procs so we have to make sure we deal with them accordingly
       source = search.to_source
       unless (match = source.match(/^proc do\n(.*)\nend$/))
         match = source.match(/^proc { (.*) }$/)
@@ -261,11 +279,12 @@ class HashModel
         proc_filter.sub!(":_group_id", "@_group_id")
         proc_filter = "proc { #{proc_filter} }.call"
       end
-
+      
       # Add the records to modified data if they pass the filter
       new_records.each do |new_record|
         unless @filter.nil?
-          @modified_data << new_record if create_object_from_flat_hash(new_record).instance_eval proc_filter
+          flat = create_object_from_flat_hash(new_record)
+          @modified_data << new_record if flat.instance_eval proc_filter
         else
           @modified_data << new_record
         end
@@ -283,12 +302,19 @@ class HashModel
 
   # Return a string consisting of the flattened data
   def to_s
+    flatten
     @modified_data.to_s
   end
 
   # Return an array of the flattened data
   def to_ary
+    flatten
     @modified_data.to_ary
+  end
+  
+  def to_a
+    flatten
+    @modified_data.to_a
   end
   
   # Iterate over the flattened records
@@ -452,7 +478,12 @@ class HashModel
         end # input.each
       when Array
         input.each do |value|
-          recordset, duplicate_data = flatten_hash(value, flatten_index, recordset, duplicate_data, parent_key)
+         case value
+            when Hash
+              recordset, duplicate_data = flatten_hash(value, flatten_index, recordset, duplicate_data, parent_key)
+            else
+              recordset << {parent_key.to_sym=>value}
+          end
         end
       else
         recordset << {parent_key.to_sym=>input}
@@ -473,8 +504,9 @@ class HashModel
           hash_record = create_object_from_flat_hash(value, hash_record, flat_key)
         end
       when Array
+        hash_record.instance_variable_set("@#{parent_key}", record)
         record.each do |value|
-          hash_record = create_object_from_flat_hash(value, hash_record, parent_key)
+          hash_record = create_object_from_flat_hash(value, hash_record, parent_key) if value.class == Hash
         end
       else
         hash_record.instance_variable_set("@#{parent_key}", record)

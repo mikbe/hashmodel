@@ -110,6 +110,45 @@ describe "HashModel" do
       @hm.add(@hm2).should == @flat_records_all
     end
     
+    it "should add a hash with a symbol as a value" do
+      @hm = HashModel.new
+      @hm << {:switch => :default}
+      @hm.should == [{:switch=>:default, :_id=>0, :_group_id=>0}]
+    end
+     
+    it "should add an array with mixed value types" do
+      @records = [
+        {:switch => ["-x", "--xtended", :default], :parameter => {:type => String, :require => true}, :description => "Xish stuff"},
+        {:switch => ["-y", "--why"],  :description => "lucky what?"},
+        {:switch => "-z",  :parameter => {:type => String}, :description => "zee svitch zu moost calz"},
+      ]
+      @hm = HashModel.new(:raw_data=>@records)
+      @hm.should == [
+        {:switch=>"-x", :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>0, :_group_id=>0}, 
+        {:switch=>"--xtended", :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>1, :_group_id=>0}, 
+        {:switch=>:default, :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>2, :_group_id=>0},
+        {:switch=>"-y", :description=>"lucky what?", :_id=>3, :_group_id=>1}, 
+        {:switch=>"--why", :description=>"lucky what?", :_id=>4, :_group_id=>1}, 
+        {:switch=>"-z", :parameter=>{:type=>String}, :description=>"zee svitch zu moost calz", :_id=>5, :_group_id=>2}
+      ]
+    end
+    
+    it "should add an array of arrays as values and not recurse into them" do
+        @records = [
+          { :switch => [ [5, 6], [1, 2] ] }
+        ]
+        @hm = HashModel.new(:raw_data=>@records)
+        @hm.should == [{:switch=>[5, 6], :_id=>0, :_group_id=>0}, {:switch=>[1, 2], :_id=>1, :_group_id=>0}]
+    end
+    
+    it "shouldn't recurse into arrays with hash values" do
+        @records = [
+          { :switch => [ [5, 6], [1, :blah=>2] ] }
+        ]
+        @hm = HashModel.new(:raw_data=>@records)
+        @hm.should == [{:switch=>[5, 6], :_id=>0, :_group_id=>0}, {:switch=>[1, :blah=>2], :_id=>1, :_group_id=>0}]
+    end
+    
     it "should allow an array of HashModels to be added" do
       @hm.add([@hm, @hm2])
       @hm.should == [
@@ -433,6 +472,27 @@ describe "HashModel" do
         @hm.flatten_index = :description
       end.should change(@hm, :flatten_index).from(:switch).to(:description)
     end
+    
+    it "should throw an error if an invalid flatten index is given" do
+        @records = [
+          { :switch => [ [5, 6], [1, :blah=>2] ] }
+        ]
+        @hm = HashModel.new(:raw_data=>@records)
+        proc {@hm.flatten_index = :switch__blah}.should raise_error(ArgumentError)
+    end
+    
+    it "shouldn't throw an error if a valid flatten index is given" do
+        proc {@hm.flatten_index = :parameter__type}.should_not raise_error
+    end
+
+    it "should reset the flatten index if an invalid flatten index is given" do
+        @records = [
+          { :switch => [ [5, 6], [1, :blah=>2] ] }
+        ]
+        @hm = HashModel.new(:raw_data=>@records)
+        proc {@hm.flatten_index = :switch__blah}.should raise_error(ArgumentError)
+        @hm.flatten_index.should == :switch
+    end
 
     it "should set the flatten index when adding to an empty HashModel" do
       @hm.flatten_index.should == :switch
@@ -569,7 +629,48 @@ describe "HashModel" do
       it "should return the same hash model when calling where" do
          @hm.where!("-x").object_id.should == @hm.object_id
       end
-     
+      
+      it "should return the entire flattened recordset if nothing is sent" do
+        @hm.where!("-x")
+        @hm.should == [@flat_records[0]]
+        @hm.where!
+        @hm.should == @flat_records
+      end
+
+    end
+
+    context "non-string search values" do
+
+      it "should search using the flatten_index if a symbol is used with where" do
+        @records = [
+          {:switch => ["-x", "--xtended", :default], :parameter => {:type => String, :require => true}, :description => "Xish stuff"},
+          {:switch => ["-y", "--why"],  :description => "lucky what?"},
+          {:switch => "-z",  :parameter => {:type => String}, :description => "zee svitch zu moost calz"},
+        ]
+        @hm = HashModel.new(:raw_data=>@records)
+        @hm.where(:default).should == [{:switch=>:default, :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>2, :_group_id=>0}]
+      end
+
+      it "should search using an array" do
+        @records = [
+          { :switch => [ [5,6], [1,2] ] }
+        ]
+        @hm = HashModel.new(:raw_data=>@records)
+        @hm.where([1,2]).should == [{:switch=>[1,2], :_id=>1, :_group_id=>0}]
+      end
+
+      it "should search using an array including a hash" do
+        @records = [
+          { :switch => [ [5,6], [1,:blah=>2] ] }
+        ]
+        @hm = HashModel.new(:raw_data=>@records)
+        @hm.where([1,:blah=>2]).should == [{:switch=>[1,:blah=>2], :_id=>1, :_group_id=>0}]
+      end
+
+    end
+  
+    context "filtering records" do
+  
       it "should filter the recordset" do
         @hm.where!("-x")
         @hm.should == [@flat_records[0]]
@@ -596,14 +697,7 @@ describe "HashModel" do
         proc {@hm.where!}.should change(@hm, :filtered?).from(true).to(false)
       end
       
-      it "should return the entire flattened recordset if nothing is sent" do
-        @hm.where!("-x")
-        @hm.should == [@flat_records[0]]
-        @hm.where!
-        @hm.should == @flat_records
-      end
-      
-    end # in place
+    end # filtering
     
     context "not in place" do
 

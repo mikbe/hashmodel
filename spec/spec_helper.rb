@@ -28,7 +28,7 @@ module Kernel
   def dp(value)
     puts ""
     puts "*" * 40
-    puts "value: #{value}"
+    puts value
     puts "&" * 40
     puts ""
   end
