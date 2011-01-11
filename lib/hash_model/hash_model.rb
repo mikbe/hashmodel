@@ -38,13 +38,12 @@ class HashModel
     @modified_data.each do |record|
       break (flatten_found = true) if record[value]
     end
-    
+  
     unless flatten_found
       @flatten_index = old_flatten
       flatten 
-      raise ArgumentError, "Flatten index could not be created: #{flatten_index}"
+      raise ArgumentError, "Flatten index could not be created: #{value}"
     end
-
     self
   end
 
@@ -64,6 +63,7 @@ class HashModel
     raise SyntaxError, "Raw data may only be an array of hashes" if value.class != Array
     check_field_names(value)
     @raw_data = value.clone
+    flatten
   end
 
 
@@ -95,6 +95,7 @@ class HashModel
 
   # Force internal arrays to be cloned
   def clone
+    flatten
     hm = HashModel.new(:raw_data=>@raw_data.clone)
     hm.flatten_index = @flatten_index
     hm.filter = @filter

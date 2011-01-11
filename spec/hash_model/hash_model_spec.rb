@@ -474,11 +474,25 @@ describe "HashModel" do
     end
     
     it "should throw an error if an invalid flatten index is given" do
-        @records = [
-          { :switch => [ [5, 6], [1, :blah=>2] ] }
-        ]
-        @hm = HashModel.new(:raw_data=>@records)
-        proc {@hm.flatten_index = :switch__blah}.should raise_error(ArgumentError)
+      @records = [
+        { :switch => [ [5, 6], [1, :blah=>2] ] }
+      ]
+      @hm = HashModel.new(:raw_data=>@records)
+      proc {@hm.flatten_index = :switch__blah}.should raise_error(ArgumentError)
+    end
+
+    it "should flatten the hashmodel if data is added to the raw_data" do
+      hm = HashModel.new
+      hm.raw_data << {:switch=>"-x", :class=>"Blorp::Wrapper::TestClass", :method=>:method1, :description=>"", :required=>false, :parameter=>{:type=>nil, :required=>nil}}
+      hm.where("-x").should == [{:switch=>"-x", :class=>"Blorp::Wrapper::TestClass", :method=>:method1, :description=>"", :required=>false, :parameter=>{:type=>nil, :required=>nil}, :_id=>0, :_group_id=>0}]
+    end
+
+    it "should raise an error if the flatten index is set to nil" do
+      proc {@hm.flatten_index = nil}.should raise_error(ArgumentError)
+    end
+
+    it "should raise an error if the flatten index is set to an empty string" do
+      proc {@hm.flatten_index = ""}.should raise_error(ArgumentError)
     end
     
     it "shouldn't throw an error if a valid flatten index is given" do
