@@ -141,7 +141,7 @@ class HashModel
         @modified_data  == value
       when Array
         # test for something other than hashes, a flattened recordset, or raw data
-        if !value.empty? && value[0].class == Hash && value[0].has_key?(:_group_id)
+        if value.empty? || (value[0].class == Hash && value[0].has_key?(:_group_id))
           @modified_data == value
         else
           @raw_data == value
