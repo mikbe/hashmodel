@@ -227,7 +227,7 @@ I've covered most of the major stuff here but to see all of the functionality ta
 
 ## Version History
 
-0.3.0.beta2 - 2011.01.09  
+0.3.0.beta3 - 2011.01.09  
 
 * HashModel\#where searches can now use symbols instead of @variables (you can still use @ if you want).  
 e.g. hash_model.where{:x == "x" && :y == "y"} instead of the less natural hash_model.where{@x == "x" && @y == "y"}  
@@ -235,7 +235,7 @@ e.g. hash_model.where{:x == "x" && :y == "y"} instead of the less natural hash_m
 * Changed name for require to mirror name of app (require 'hashmodel' instead of confusing require 'hash_model')  
 * Added flatten to multiple methods (clone, to\_s, to\_a, to\_ary) so they'll return flattened data if called without anything else happening first.  
 * Fixed == comparison bug
-* Fixed design flaw that didn't allow arrays of arrays to be used as values or arrays as searches.  
+* Fixed design flaw that didn't allow arrays of arrays to be used as values or allow arrays as search criteria.  
 * Removed Jeweler and converted to Bundler gem building.  
 * Added usage instructions.  
 * To do: Refactor some ugly code  
