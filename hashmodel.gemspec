@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.email       = ["mikbe.tk@gmail.com"]
   s.homepage    = "http://github.com/mikbe/hashmodel"
   s.summary     = %q{Store nested hashes as records and easily search them (even nested ones)}
-  s.description = %q{A simple, powerful MVC type model class for storing records based on nested hashes as an array of hashes. You can store deeply nested hashes and still easily flatten and query the records using flattened field names.}
+  s.description = %q{A simple MVC type model class for storing records based on nested hashes as an array of hashes. You can store deeply nested hashes and still easily flatten and query the records using flattened field names.}
 
   s.add_dependency "sourcify"
   s.add_dependency "file-tail"

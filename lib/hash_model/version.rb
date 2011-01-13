@@ -3,7 +3,7 @@ class HashModel
     MAJOR  = 0
     MINOR  = 3
     TINY   = 0
-    PRE    = "beta3"
+    PRE    = nil
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join('.')
 

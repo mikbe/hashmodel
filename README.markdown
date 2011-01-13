@@ -227,11 +227,11 @@ I've covered most of the major stuff here but to see all of the functionality ta
 
 ## Version History
 
-0.3.0.beta3 - 2011.01.09  
+0.3.0.beta3 - 2011.01.12  
 
 * HashModel\#where searches can now use symbols instead of @variables (you can still use @ if you want).  
 e.g. hash_model.where{:x == "x" && :y == "y"} instead of the less natural hash_model.where{@x == "x" && @y == "y"}  
-* Converted the HashModel filter from a proc to a string so it can be viewed and allows the above behavior.  
+* Converted the HashModel filter from a proc to a string so it can be viewed and allows the above behavior (still no built-in proc.to_source so thanks to sourcify).  
 * Changed name for require to mirror name of app (require 'hashmodel' instead of confusing require 'hash_model')  
 * Added flatten to multiple methods (clone, to\_s, to\_a, to\_ary) so they'll return flattened data if called without anything else happening first.  
 * Fixed == comparison bug
