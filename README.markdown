@@ -221,6 +221,8 @@ I've covered most of the major stuff here but to see all of the functionality ta
 0.3.2 - 2011.03
 
 * Fixed bug if you search an empty HashModel (can't build a flatten index on nothing)
+* Changed HashModel#parent method to search like a `where` search and return all raw parent records.
+* Added delete method to delete raw data for flattened records. Note that since this is deleting the raw data if you have other flatten records that are based on that raw data they will no longer exist because the data that generated them is gone.
 
 0.3.1 - 2011.03.18
 

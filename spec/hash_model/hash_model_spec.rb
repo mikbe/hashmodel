@@ -804,6 +804,15 @@ describe "HashModel" do
       
     end
 
+    context "searching for the parent" do
+      it "should return the raw record the child record is based on" do
+        @hm.parents("-x").should == [@records[0]]
+      end
+      it "should return all the parents if there are more than one base on the search" do
+        @hm.parents{:parameter__type == String}.should == [@records[0],@records[2]]
+      end
+    end
+
     it "should return false if tested for inclusion of anything other than a hash" do
       @hm.include?([:switch=>"-x"]).should == false
     end
@@ -1066,6 +1075,18 @@ describe "HashModel" do
       @hm.permutation.to_a.should_not == @records.permutation.to_a
     end
     
+  end
+
+
+  context "when deleting records" do
+    it "should delete the raw record the child record is based on" do
+      hm = HashModel.new << @records[1] << @records[2]
+      @hm.delete("-x").should == hm
+    end
+    it "should delete all the parents if there are more than one base on the search" do
+      hm = HashModel.new(:raw_data=>@records[1])
+      @hm.delete{:parameter__type == String}.should == hm
+    end
   end
 
 end # describe "HashModel"

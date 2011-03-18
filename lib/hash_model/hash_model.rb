@@ -247,10 +247,16 @@ class HashModel
     flatten
   end
 
-  # Find the raw data record for a given flat record
-  def parent(flat_record)
+  # Find the raw data record based on the search criteria
+  def parents(value=nil, &search)
+    flat_records = where(value, &search)
+    flat_records.collect{|flat| @raw_data[flat[:_group_id]]}.uniq
+  end
+
+  # Delete the raw data record based on the search criteria
+  def delete(value=nil, &search)
+    parents(value, &search).each{|parent| @raw_data.delete(parent)}
     flatten
-    @raw_data[flat_record[:_group_id]]
   end
 
   # Set the array value for self to the flattened hashes based on the flatten_index
