@@ -29,7 +29,7 @@ Or more powerfully you can search using boolean like logic e.g.
 
 ## Status
 
-2011.03.18 - Production: 0.3.1
+2011.03.18 - Production: 0.3.2
 
 ## Developer Notes
 
@@ -217,6 +217,10 @@ I've covered most of the major stuff here but to see all of the functionality ta
   
 
 ## Version History
+
+0.3.2 - 2011.03
+
+* Fixed bug if you search an empty HashModel (can't build a flatten index on nothing)
 
 0.3.1 - 2011.03.18
 

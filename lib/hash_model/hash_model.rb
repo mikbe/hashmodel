@@ -95,6 +95,7 @@ class HashModel
 
   # Force internal arrays to be cloned
   def clone
+    return self if @raw_data.empty?
     flatten
     hm = HashModel.new(:raw_data=>@raw_data.clone)
     hm.flatten_index = @flatten_index
@@ -193,6 +194,8 @@ class HashModel
     # Parameter checks
     raise SyntaxError, "You may only provide a parameter or a block but not both" if value && !search.nil?
     
+    return self if @raw_data.empty?
+
     # Allow clearing the filter and returning the entire recordset if nothing is given
     if !value && search.nil?
       @filter = nil
@@ -254,6 +257,7 @@ class HashModel
   def flatten
     # Don't flatten the data if we don't need to
     return self if !dirty?
+    
     
     id = -1
     group_id = -1

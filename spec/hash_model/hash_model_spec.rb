@@ -627,6 +627,16 @@ describe "HashModel" do
  
     context "in place" do
 
+      it "should return an empty set if the HashModel is empty" do
+        empty = HashModel.new
+        empty.where("fudge").should == []
+      end
+      
+      it "should have a length of 0 if the HashModel is empty" do
+        empty = HashModel.new
+        empty.length.should == 0
+      end
+      
       it "should accept a parameter as input" do
         proc{@hm.where!("-x")}.should_not raise_error
       end
