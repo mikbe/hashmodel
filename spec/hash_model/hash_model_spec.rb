@@ -84,6 +84,14 @@ describe "HashModel" do
       
     end # "raw data"
 
+    describe "flattened data" do
+      
+      it "reports the length of the flattened data" do
+        @hm.length.should == 5
+      end
+      
+    end
+
   end # "general properties"
 
   describe "adding records" do

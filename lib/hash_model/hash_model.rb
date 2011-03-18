@@ -390,6 +390,14 @@ class HashModel
   
   private
 
+  # If the object is serialized it loses the dynamically mapped methods
+  # This will catch that and try to remap them.
+  def method_missing(symbol , *args)
+    mimic_methods
+    return send(symbol, *args) if respond_to?(symbol)
+    super(symbol, args)
+  end
+
   # Convert a hash of multiple key/value pairs to an array of single hashes.
   # {:field1 => "value1", :field2 => "value2"}
   # becomes

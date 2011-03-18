@@ -4,11 +4,6 @@ A simple MVC type model class for storing deeply nested hashes as records.
 It's meant to be used for small, in-memory recordset that you want an easy, flexible way to query.
 It is not meant as a data storage device for managing huge datasets.
 
-Note:   
-This started out as a programming exercise to learn more about Ruby but is now fairly well featured so can be quite useful.
-It is not however a thoroughly tested or industrial strength model and it's not meant to be used to parse your entire user database.
-If you're looking for an excellent model class take a look at ActiveModel, it's probably more of what you're looking for.
-
 ## Synopsis
 
 The major usefulness of this class is it allows you to filter and search flattened records based on any field.
@@ -34,11 +29,7 @@ Or more powerfully you can search using boolean like logic e.g.
 
 ## Status
 
-###**Beta**  
-
-I'm doing real-world testing now and am fixing design holes and adding functionality so I wouldn't use this version until I'm done. None of the previous versions were all that useful but after I release this version I'll only develop in branches.
-
-I expect the design to stay pretty stable from this point forward so no more surprising changes in the design or its use.
+2011.03.18 - Production: 0.3.1
 
 ## Developer Notes
 
@@ -227,7 +218,11 @@ I've covered most of the major stuff here but to see all of the functionality ta
 
 ## Version History
 
-0.3.0.beta3 - 2011.01.12  
+0.3.1 - 2011.03.18
+
+* Fixed design flaw that caused HashModel not to respond to Array methods if a deserialized copy (e.g. Marshal.load) was used before a new instance of the class had been created.
+
+0.3.0 - 2011.01.13
 
 * HashModel\#where searches can now use symbols instead of @variables (you can still use @ if you want).  
 e.g. hash_model.where{:x == "x" && :y == "y"} instead of the less natural hash_model.where{@x == "x" && @y == "y"}  
