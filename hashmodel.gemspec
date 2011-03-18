@@ -15,6 +15,12 @@ Gem::Specification.new do |s|
   s.add_dependency "sourcify"
   s.add_dependency "file-tail"
   
+  # After hassling with version dependency it makes more sense NOT to
+  # declare version numbers and let it break if it is actually going
+  # to break instead of having it break every single time even if it
+  # wouldn't have broken with the new versions. Or maybe people need
+  # to be looser with their versioning requiremetns. My 2 cents.
+  #
   s.add_development_dependency "rspec"
   s.add_development_dependency "cucumber"
 

@@ -253,8 +253,13 @@ class HashModel
     flat_records.collect{|flat| @raw_data[flat[:_group_id]]}.uniq
   end
 
-  # Delete the raw data record based on the search criteria
+  # Returns a copy of the HashModel with raw data deleted based on the search criteria
   def delete(value=nil, &search)
+    self.clone.delete!(value, &search)
+  end
+  
+  # Deletes the raw data records based on the search criteria
+  def delete!(value=nil, &search)
     parents(value, &search).each{|parent| @raw_data.delete(parent)}
     flatten
   end

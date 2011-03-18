@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    hashmodel (0.3.0.beta2)
+    hashmodel (0.3.2)
       file-tail
       sourcify
 
@@ -18,27 +18,28 @@ GEM
     diff-lcs (1.1.2)
     file-tail (1.0.5)
       spruz (>= 0.1.0)
-    gherkin (2.3.3)
+    gherkin (2.3.4)
       json (~> 1.4.6)
     json (1.4.6)
-    rspec (2.4.0)
-      rspec-core (~> 2.4.0)
-      rspec-expectations (~> 2.4.0)
-      rspec-mocks (~> 2.4.0)
-    rspec-core (2.4.0)
-    rspec-expectations (2.4.0)
+    rspec (2.5.0)
+      rspec-core (~> 2.5.0)
+      rspec-expectations (~> 2.5.0)
+      rspec-mocks (~> 2.5.0)
+    rspec-core (2.5.1)
+    rspec-expectations (2.5.0)
       diff-lcs (~> 1.1.2)
-    rspec-mocks (2.4.0)
+    rspec-mocks (2.5.0)
     ruby2ruby (1.2.5)
       ruby_parser (~> 2.0)
       sexp_processor (~> 3.0)
-    ruby_parser (2.0.5)
+    ruby_parser (2.0.6)
       sexp_processor (~> 3.0)
     sexp_processor (3.0.5)
-    sourcify (0.4.0)
+    sourcify (0.4.2)
+      file-tail (>= 1.0.5)
       ruby2ruby (>= 1.2.5)
       sexp_processor (>= 3.0.5)
-    spruz (0.2.2)
+    spruz (0.2.5)
     term-ansicolor (1.0.5)
 
 PLATFORMS
@@ -46,7 +47,5 @@ PLATFORMS
 
 DEPENDENCIES
   cucumber
-  file-tail
   hashmodel!
   rspec
-  sourcify

@@ -1077,16 +1077,45 @@ describe "HashModel" do
     
   end
 
-
   context "when deleting records" do
-    it "should delete the raw record the child record is based on" do
-      hm = HashModel.new << @records[1] << @records[2]
-      @hm.delete("-x").should == hm
+
+    context "and doing it destructively" do
+      it "should delete the raw record the child record is based on" do
+        hm = HashModel.new << @records[1] << @records[2]
+        @hm.delete!("-x")
+        @hm.should == hm
+      end
+      it "should delete all the parents if there are more than one base on the search" do
+        hm = HashModel.new(:raw_data=>@records[1])
+        @hm.delete!{:parameter__type == String}
+        @hm.should == hm
+      end
     end
-    it "should delete all the parents if there are more than one base on the search" do
-      hm = HashModel.new(:raw_data=>@records[1])
-      @hm.delete{:parameter__type == String}.should == hm
+
+    context "NON-destructively" do
+      it "should delete the raw record the child record is based on" do
+        hm = HashModel.new << @records[1] << @records[2]
+        @hm.delete("-x")
+        @hm.should_not == hm
+      end
+      it "should delete all the parents if there are more than one base on the search" do
+        hm = HashModel.new(:raw_data=>@records[1])
+        @hm.delete{:parameter__type == String}
+        @hm.should_not == hm
+      end
+      it "should delete the raw record the child record is based on" do
+        hm = HashModel.new << @records[1] << @records[2]
+        hm2 = @hm.delete("-x")
+        hm2.should == hm
+      end
+      it "should delete all the parents if there are more than one base on the search" do
+        hm = HashModel.new(:raw_data=>@records[1])
+        hm2 = @hm.delete{:parameter__type == String}
+        hm2.should == hm
+      end
     end
+
+    
   end
 
 end # describe "HashModel"
