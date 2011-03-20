@@ -27,8 +27,7 @@ class HashModel
           string_search = ":#{@flatten_index} == #{index_search}".to_s
       end
     else
-      # Convert the proc to a string so it can be viewed
-      # and later have :'s turned into @'s
+      # Convert the proc to a string so it can have :'s turned into @'s
       
       # Sourcify can create single or multi-line procs so we have to make sure we deal with them accordingly
       source = block_search.to_source
