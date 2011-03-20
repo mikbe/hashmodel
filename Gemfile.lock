@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    hashmodel (0.3.2)
+    hashmodel (0.4.0)
       file-tail
       sourcify
 

@@ -1,4 +1,11 @@
 require 'sourcify'
+require 'hash_model/hash_model_delete'
+require 'hash_model/hash_model_group'
+require 'hash_model/hash_model_filter'
+require 'hash_model/hash_model_update'
+require 'hash_model/hash_model_where'
+
+
 # A simple MVC type model class for storing hashes as flattenable, searchable records
 class HashModel
   include Enumerable
@@ -11,12 +18,13 @@ class HashModel
     mimic_methods
     
     # Set values given as hashes
-    parameters.each { |key,value| instance_variable_set("@#{key}", value) }
+    parameters.each { |key,value| 
+      instance_variable_set("@#{key}", smart_clone(value)) }
 
     # Allow a single hash to be added with :raw_data
     @raw_data = [@raw_data] if @raw_data.class == Hash
 
-    check_field_names(@raw_data) if !@raw_data.empty?
+    check_field_names(@raw_data) unless @raw_data.empty?
     
     # Setup the flat data
     flatten
@@ -25,12 +33,14 @@ class HashModel
 
   ## Properties
 
-  attr_accessor :flatten_index, :raw_data, :filter
-
+  attr_accessor :flatten_index, :raw_data, :filter_proc
+  
   # Sets field name used to flatten the recordset
   def flatten_index=(value)
     old_flatten = @flatten_index
+    old_filter = @filter_proc
     @flatten_index = value
+    @filter_proc = nil
     flatten
     
     # Verify the flatten index is a valid index
@@ -41,6 +51,7 @@ class HashModel
   
     unless flatten_found
       @flatten_index = old_flatten
+      @filter_proc = old_filter
       flatten 
       raise ArgumentError, "Flatten index could not be created: #{value}"
     end
@@ -49,12 +60,7 @@ class HashModel
 
   # Are the records being filtered?
   def filtered?
-    !!@filter
-  end
-
-  def filter=(filter)
-    @filter = filter
-    flatten
+    !!@filter_proc
   end
 
   # Trap changes to raw data so we can re-flatten the data
@@ -62,10 +68,9 @@ class HashModel
     value = [] if value.nil?
     raise SyntaxError, "Raw data may only be an array of hashes" if value.class != Array
     check_field_names(value)
-    @raw_data = value.clone
+    @raw_data = smart_clone(value)
     flatten
   end
-
 
   ## Public Methods 
 
@@ -79,7 +84,7 @@ class HashModel
   
   # Remove the in-place where filter
   def clear_filter
-    @filter = nil
+    @filter_proc = nil
     flatten
   end
   alias :clear_where :clear_filter # in case this makes more sense to people
@@ -90,24 +95,25 @@ class HashModel
     @modified_data = []
     @unflatten_data  = []
     @flatten_index = nil
-    @filter = nil
+    @filter_proc = nil
   end
 
-  # Force internal arrays to be cloned
+  # Force internal arrays and variables to be cloned
   def clone
     return self if @raw_data.empty?
     flatten
     hm = HashModel.new(:raw_data=>@raw_data.clone)
     hm.flatten_index = @flatten_index
-    hm.filter = @filter
+    hm.filter_proc = @filter_proc
     hm
   end
 
   ## Operators
   
-  # Overload Array#<< function so we can create the flatten index as the first record is added
-  # and allows us to send back this instance of the HashModel instead of an array.
+  # Overload Array#<< function so we can create the flatten index as the first record is added.
+  # This also allows us to send back this instance of the HashModel instead of an array.
   def <<(value)
+    value = smart_clone(value)
     case value
       when HashModel
         @raw_data.concat(value.raw_data)
@@ -117,8 +123,7 @@ class HashModel
         check_field_names(value)
         @raw_data << value
       when Array
-        # It goes crazy if you don't clone the array before recursing
-        value.clone.each{ |member| self << member }
+        value.each{ |member| self << member }
       else
         raise SyntaxError, "You may only add a hash, another HashModel, or an array of either"
     end
@@ -153,7 +158,6 @@ class HashModel
   end
   alias :eql? :==
 
-
   # Remap spaceship to stop infinite loops
   alias :_spaceship_ :<=>
   private :_spaceship_
@@ -175,7 +179,6 @@ class HashModel
     end
   end
 
-
   ## Searching 
 
   # Tests flat or raw data depending of if you use flat or raw data
@@ -184,98 +187,34 @@ class HashModel
     @modified_data.include?(value) || @raw_data.include?(value)
   end
 
-  # Search creating a new instance of HashModel based on this one
-  def where(value=nil, &search)
-    self.clone.where!(value, &search)
-  end
-
-  # Search the flattened records using the default flatten index or a boolean block
-  def where!(value=nil, &search)
-    # Parameter checks
-    raise SyntaxError, "You may only provide a parameter or a block but not both" if value && !search.nil?
-    
-    return self if @raw_data.empty?
-
-    # Allow clearing the filter and returning the entire recordset if nothing is given
-    if !value && search.nil?
-      @filter = nil
-      return flatten
-    end
-
-    # If given a parameter make our own search based on the flatten index
-    unless value.nil?
-      # Make sure the field name is available to the proc
-      case value
-        when String
-          string_search = ":#{@flatten_index} == \"#{value}\"".to_s
-        when Symbol
-          string_search = ":#{@flatten_index} == :#{value}".to_s
-        else
-          string_search = ":#{@flatten_index} == #{value}".to_s
-      end
-    else
-      # Convert the proc to a string so it can be viewed
-      # and later have :'s turned into @'s
-      
-      # Sourcify can create single or multi-line procs so we have to make sure we deal with them accordingly
-      source = search.to_source
-      unless (match = source.match(/^proc do\n(.*)\nend$/))
-        match = source.match(/^proc { (.*) }$/)
-      end
-      string_search = match[1]
-    end # !value.nil?
-    
-    # Set and process the filter
-    @filter = string_search
-    flatten
-  end
-
-  # Return the other records created from the same raw data record as the one(s) searched for
-  def group(value=nil, &search)
-    self.clone.group!(value, &search)
-  end
-  
-  # Filter in place based on the parent record 
-  def group!(value=nil, &search)
-    # Filter the recordset if applicable
-    if !value.nil? || !search.nil?
-      where!(value, &search)
-    end
-    # Get all the unique group id's
-    group_ids = @modified_data.collect {|hash| hash[:_group_id]}.uniq
-    self.filter = "#{group_ids.to_s}.include? :_group_id"
-    flatten
-  end
-
   # Find the raw data record based on the search criteria
-  def parents(value=nil, &search)
-    flat_records = where(value, &search)
+  def parents(index_search=nil, &block_search)
+    flat_records = where(index_search, &block_search)
     flat_records.collect{|flat| @raw_data[flat[:_group_id]]}.uniq
-  end
-
-  # Returns a copy of the HashModel with raw data deleted based on the search criteria
-  def delete(value=nil, &search)
-    self.clone.delete!(value, &search)
-  end
-  
-  # Deletes the raw data records based on the search criteria
-  def delete!(value=nil, &search)
-    parents(value, &search).each{|parent| @raw_data.delete(parent)}
-    flatten
   end
 
   # Set the array value for self to the flattened hashes based on the flatten_index
   def flatten
     # Don't flatten the data if we don't need to
-    return self if !dirty?
-    
-    
+    return self unless dirty?
+
     id = -1
     group_id = -1
     @modified_data.clear
     # set the flatten index if this is the first time the function is called
     @flatten_index = @raw_data[0].keys[0] if @raw_data != [] && @flatten_index.nil?
     flatten_index = @flatten_index.to_s
+
+      
+    # Change the filter so it looks for variables instead of symbols
+    unless @filter_proc.nil?
+      proc_filter = @filter_proc.clone
+      proc_filter.scan(/(:\S+) ==/).each {|match| proc_filter.sub!(match[0], match[0].sub(":","@"))}
+      proc_filter.sub!(":_group_id", "@_group_id")
+      proc_filter = "proc { #{proc_filter} }.call"
+    end
+    #dp "newfilter: #{proc_filter}"
+
 
     # Flatten and filter the raw data
     @raw_data.each do |record|
@@ -287,18 +226,11 @@ class HashModel
         # Double bangs aren't needed but are they more efficient?
         new_record.merge!( duplicate_data.merge!( { :_id=>(id+=1), :_group_id=>group_id } ) )
       end 
-      
-      # Change the filter so it looks for variables instead of symbols
-      unless @filter.nil?
-        proc_filter = @filter.clone
-        proc_filter.scan(/(:\S+) ==/).each {|match| proc_filter.sub!(match[0], match[0].sub(":","@"))}
-        proc_filter.sub!(":_group_id", "@_group_id")
-        proc_filter = "proc { #{proc_filter} }.call"
-      end
-      
+
       # Add the records to modified data if they pass the filter
       new_records.each do |new_record|
-        unless @filter.nil?
+        #dp "rec: #{new_record}"
+        unless @filter_proc.nil?
           flat = create_object_from_flat_hash(new_record)
           @modified_data << new_record if flat.instance_eval proc_filter
         else
@@ -325,42 +257,41 @@ class HashModel
   # Return an array of the flattened data
   def to_ary
     flatten
-    @modified_data.to_ary
+    @modified_data.clone.to_ary
   end
   
+  # Outputs the flattened data
   def to_a
     flatten
-    @modified_data.to_a
+    @modified_data.clone.to_a
   end
   
   # Iterate over the flattened records
   def each
     @modified_data.each  do |record| 
-      # change or manipulate the values in your value array inside this block
-      yield record
+       yield record
     end
   end
   
   # Convert a flat record into an unflattened record
-  def unflatten(input)
-    HashModel.unflatten(input)
+  def unflatten(flat_record)
+    HashModel.unflatten(flat_record)
   end
 
   # Convert a flat record into an unflattened record
-  def self.unflatten(input)
+  def self.unflatten(flat_record)
     # Seriously in need of a refactor, just looking at this hurts my brain
     # There's a lot of redundancy here.
-    case input
+    case flat_record
       when Hash
         new_record = {}
-        input.each do |key, value|
+        flat_record.each do |key, value|
           # recursively look for flattened keys
           keys = key.to_s.split("__", 2)
           if keys[1]
             key = keys[0].to_sym
             value = unflatten({keys[1].to_sym => value})
           end
-      
           # Don't overwrite existing value
           if (existing = new_record[key])
             # convert to array and search for subkeys if appropriate
@@ -397,10 +328,18 @@ class HashModel
         new_record
       when Array
         # recurse into array
-        input.collect! {|item| unflatten(item) }
+        flat_record.collect! {|item| unflatten(item) }
       else
-        input
+        flat_record
     end
+  end
+
+  protected
+  
+  # Allows access to the internal filter, needed to make sure clones filter properly
+  def filter_proc=(filter)
+    @filter_proc = filter
+    flatten
   end
   
   private
@@ -434,15 +373,15 @@ class HashModel
   end
 
   # Checks hash keys for reserved field names
-  def check_field_names(input)
-    case input
+  def check_field_names(argument_list)
+    case argument_list
       when Hash
-        input.each do |key, value|
+        argument_list.each do |key, value|
           raise ReservedNameError, "use of reserved name :#{key} as a field name." if [:_id, :_group_id].include?(key)
           check_field_names(value)
         end  
       when Array
-        input.clone.each { |record| check_field_names(record) }
+        argument_list.clone.each { |record| check_field_names(record) }
     end
   end
 
@@ -454,7 +393,7 @@ class HashModel
   # Create a hash based on internal values
   def get_current_dirty_hash
     # self.hash won't work
-    [@raw_data.hash, @filter.hash, @flatten_index.hash].hash
+    [@raw_data.hash, @filter_proc.hash, @flatten_index.hash].hash
   end
   
   # Recursively convert a single record into an array of new 
@@ -575,6 +514,22 @@ class HashModel
           define_method(method) { |*args, &block| wrapper_method(method, *args, &block) }
         end
       end
+    end
+  end
+
+  # It's annoying to raise an error if an object can't
+  # be cloned, like in the case of symbols, It is much
+  # more friendly, and less surprising too, just to
+  # return the same object so you can go about your work.
+  # The only reason I clone is to protect the values, if
+  # the values don't need to be protected I don't want an
+  # annoying error message hosing up my whole day. </rant>
+  def smart_clone(object)
+    # Stupid error trapping
+    begin
+      object.clone
+    rescue
+      object
     end
   end
 

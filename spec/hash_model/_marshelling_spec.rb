@@ -1,10 +1,9 @@
 require "spec_helper"
 
-#  WARNING!
-#  The following test is valid ONLY if it is run by itself!
-#  If a HashModel object has been instantiated before this test
-#  the test will not properly verify that the dynamic methods are
-#  recreated.
+#  IMPORTANT:
+#  The following test is valid ONLY if it is run first or by itself.
+#  If a HashModel object has been instantiated before this test the
+#  test will not properly verify that the dynamic methods are recreated.
 
 describe HashModel do
 

@@ -6,7 +6,8 @@ It is not meant as a data storage device for managing huge datasets.
 
 ## Synopsis
 
-The major usefulness of this class is it allows you to filter and search flattened records based on any field.
+The major usefulness of this class is it allows you to filter and search flattened records based on any field. You can even updated and delete data now.
+
 A field can contain anything, including another hash, a string, an array, or even an Object class like String or Array, not just an instance of an Object class.
 
 Searches are very simple and logical. You can search using just using the value of the default index 
@@ -29,11 +30,9 @@ Or more powerfully you can search using boolean like logic e.g.
 
 ## Status
 
-2011.03.18 - Production: 0.3.2
+2011.03.19 - Beta: 0.4.0.beta1
 
-## Developer Notes
-
-If you have problems running Autotest on your RSpecs try including the gem file-tail in your app. You **shouldn't** have to since I include it here but I had problems with Autotest and Sourcify and adding that fixed it.
+Lots of changes with this one. Mostly the ability to write to the HashModel and a few bug fixes. See Version History for details.
 
 ## Usage
 
@@ -216,13 +215,61 @@ I've covered most of the major stuff here but to see all of the functionality ta
     >> {:parameter=>[{:type=>String}, "glorp", {:require=>true}], :switch=>[{:deep1=>{:deep3=>"deepTwo"}}, {:deep2=>"deepTwo"}, "--xtend"], :description=>"Xish stuff"}
   
 
-## Version History
+## Version History ##
 
-0.3.2 - 2011.03
+0.4.0.beta1 - 2011.03-19
 
-* Fixed bug if you searched an empty HashModel (can't build a flatten index on nothing)
-* Changed HashModel#parent method to search like a `where` search and return all raw parent records.
-* Added delete and delete! methods to remove raw data based on a where search. Note that since this is deleting the raw data if you have other flatten records that are based on that raw data they will no longer exist because the data that generated them is gone.
+Lots of updates and code fixes for this release. After using it for a little while I've broken down and added the write functionality I was avoiding previously. 
+
+**Additions/Changes**
+
+#### Methods: `update` and `update!` methods ####
+These methods use a `where` like search that is slightly different. The methods look like this `update(default_index_search, field_new_value_hash, boolean_search_block)`. So if you search using a single value, a default index search, then you put the update hashes at the end. If you want to search using a boolean search then you put the update hashes at the beginning.
+
+For instance:
+
+    # Default index search
+    my_hash_model.update("-x", :parameter__type=>Fixnum)
+    
+    # Boolean search 
+    my_hash_model.update(:parameter__type=>Fixnum) {:switch == "-x"}
+
+You don't have to put in any search criteria at all though, you can just put in the field you want updated and it will update all records that are in the current filter set. 
+
+
+#### Methods: `update` and `update!` methods ####
+Just like `update` and `update!` but will also add a hash if it doesn't exist already.
+
+For instance if your HashModel has a record like `{:a=>"a"}` and you do `my_hash_model.update(:b=>"b")` it won't change that record, but it you do `my_hash_model.update_and_add(:b=>"b")` then your record will be `{:a=>'a', :b=>"b"}`.
+
+
+#### Methods: `delete` and `delete!` ####
+These use a the standard `where` type search used everywhere else. This function removes data from the raw data so if you have other flattened records that are based on that raw data they will no longer exist since the data that generated them is gone.  
+
+Just like an array these methods return the records they deleted.
+
+#### Method: `parent` ####
+Again this uses a `where` search and returns all raw parent records for flattened records matching the search criteria. (This method was there before but hadn't actually be coded, it was just a copy of some code I started but shouldn't have been in a release version).
+
+#### Changed: `filter` ####
+Filter has been changed from a property to a method. It is exactly like a `where` search but it's in-place and non-destructive. Since `where!` was changed to be truly destructive this change was needed. It also makes all the search functions identical in their usage.
+
+#### Changed: `where!` ####
+Changed to be truly destructive. If you run a where! on the class you're losing records that don't match it. The non-destructive version `where` is changed in that it does not contain the raw data of any records that don't match the `where` clause but the original HashModel remains untouched.
+
+#### Removed: `group!` ####
+Since bangs (!) are all now destructive, to bring the class inline with Ruby standards, it doesn't make logical sense to have a a group method that deletes all data except the search data then tries to find siblings; they were just deleted with the destructive call. Instead just use `group` and it will return the sibling records without touching the data in the HashModel.
+
+#### Other changes ####
+Because of the new destructive methods all input values will be cloned. You don't have to worry about cloning input objects yourself. If it's clonable HashModel will clone it.
+
+I've reorganized the code into multiple files based on functionality to make it easier to debug when adding new features. This is in anticipation of a major cleanup and refactoring.
+
+Cleaned up RSpecs a little along the lines of reorganization.
+
+#### Bug fixes ####
+* Threw error if you searched an empty HashModel (can't build a flatten index on nothing)
+* Couldn't change the flatten index in some rare cases. 
 
 0.3.1 - 2011.03.18
 
@@ -259,7 +306,7 @@ e.g. hash_model.where{:x == "x" && :y == "y"} instead of the less natural hash_m
 * Released on wrong RubyGems account (yanked)
 
 
-##Contributing to HashModel
+## Contributing to HashModel ##
 
 * Pull requests are handled ASAP.
 * Check out the latest master to make sure the feature hasn't been implemented or the bug hasn't been fixed yet
@@ -267,10 +314,10 @@ e.g. hash_model.where{:x == "x" && :y == "y"} instead of the less natural hash_m
 * Fork the project  
 * Start a feature/bugfix branch  
 * Commit and push until you are happy with your contribution  
-* Make sure to add RSpecs in a separate file so I can easily tell what changed (changes without specs will not be pulled) for it.
+* Make sure to add RSpecs in a separate file so I can easily tell what changed (changes without specs will not be pulled).
 * Changes to the configuration files, version numbers, or branches will not be pulled. If you want to have your own version, or is otherwise necessary, that is fine, but please isolate to its own commit so I can cherry-pick around it.
 
-##Copyright
+## Copyright ##
 
-Copyright (c) 2010 Mike Bethany. See LICENSE.txt for further details.
+Copyrighted free software - Copyright (c) 2011 Mike Bethany. See LICENSE.txt for further details.
 
