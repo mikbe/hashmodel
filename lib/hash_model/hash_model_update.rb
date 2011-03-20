@@ -15,10 +15,12 @@ class HashModel
     old_filter = @filter_proc
     filter(index_search, &block_search)
 
-    recursive_update_root(update_hash)
+    changed_records = recursive_update_root(update_hash)
 
     @filter_proc = old_filter
     flatten
+ 
+    changed_records
   end
 
 
@@ -34,39 +36,67 @@ class HashModel
   # Destructively updated the existing HashModel
   def update_and_add!(index_search=nil, update_hash, &block_search)
     
+    # filter the records by the search criteria
     old_filter = @filter_proc
     filter(index_search, &block_search)
 
-    recursive_update_root(update_hash, true)
+    changed_records = recursive_update_root(update_hash, true)
 
+    # reset the filter
     @filter_proc = old_filter
-    flatten 
-    
+    flatten
+ 
+    changed_records
   end
 
   private 
   
   # Loops through the filtered recordset and sends each record off to be recursivly changed
   def recursive_update_root(update_hash, add=false)
+    changed_records = []
     each do |record|
+      # puts
+      # puts record
+      changed = [false]
       update_hash.each do |key,value|
         unflat = unflatten(key=>value)
-        recursive_update_worker(@raw_data[record[:_group_id]], unflat, key, nil,  add)
+        recursive_update_worker(@raw_data[record[:_group_id]], unflat, key, nil,  add, changed)
+      end
+      # puts "Changed: #{changed}"
+      changed_records << record if changed[0]
+    end
+    #puts "changed: #{changed_records}"
+    changed_records
+  end
+
+  # also look for hashes with multiple values - no we only allow single field changes they have to give a flattened field or it wipes everything
+
+  # {:a=>"a", :b=>{:b1=>"b1", :b2=>{:b2a =>"b2a", :b2b=>"b2b"}}}
+  # {:a=>"17", :b=>"1870"}
+  def recursive_update_worker(target_hash, source_hash, terminal_key, parent_key, add, changed)
+    # puts
+    # puts "target_hash: #{target_hash}"
+    # puts "source_hash: #{source_hash}"
+    source_hash.each do |source_hash_key, source_hash_value|
+      current_key = "#{parent_key}#{"__" if parent_key}#{source_hash_key}".to_sym 
+      # puts "source_hash_key: #{source_hash_key}"
+      # puts "current_key: #{current_key}"
+      if current_key == terminal_key
+        # puts "You've reached your destination"
+        return unless target_hash[source_hash_key] or add
+        target_hash[source_hash_key] = source_hash_value
+        changed[0] = true
+      else
+        if target_hash.is_a? Hash
+          recursive_update_worker(target_hash[source_hash_key], source_hash[source_hash_key], terminal_key, current_key, add, changed)
+        else
+          if add
+            target_hash = source_hash
+            changed[0] = true
+          end
+        end
       end
     end
   end
-
-  def recursive_update_worker(target_hash, new_value_hash, terminal_key, parent_key, add)
-    new_value_hash.each { |key,value|
-      current_key = "#{parent_key}#{"__" if parent_key}#{key}".to_sym 
-      if value.is_a? Hash and target_hash[key].is_a? Hash and current_key != terminal_key
-        target_hash.merge(key=>{}) if add and !target_hash[key] # allows deep recursion of fields that don't yet exist
-        recursive_update_worker(target_hash[key], value, terminal_key, current_key, add) if target_hash[key]
-      else
-        target_hash[key] = value if target_hash[key] || add
-      end
-    }
-  end
-
 
 end
