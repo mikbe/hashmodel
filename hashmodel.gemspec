@@ -6,12 +6,14 @@ Gem::Specification.new do |s|
   s.name        = "hashmodel"
   s.version     = HashModel::VERSION::STRING
   s.platform    = Gem::Platform::RUBY
+  s.required_ruby_version = '>= 1.9.2'
   s.authors     = ["Mike Bethany"]
   s.email       = ["mikbe.tk@gmail.com"]
-  s.homepage    = "http://github.com/mikbe/hashmodel"
+  s.homepage    = "http://mikbe.tk"
   s.summary     = %q{Store nested hashes as records and easily search them (even nested ones)}
   s.description = %q{A hash based MVC model class that makes searching and updating deeply nested hashes a breeze. You can store deeply nested hashes and still easily flatten, query, and update the records using flattened field names.}
-
+  s.license = 'MIT'
+  
   s.add_dependency "sourcify"
   s.add_dependency "file-tail"
   
@@ -25,7 +27,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency "cucumber"
 
   s.files         = `git ls-files`.split("\n")
-  s.test_files    = `git ls-files -- {test,spec,features}/*`.split("\n")
+  s.test_files    = `git ls-files -- {spec,features}/**/*`.split("\n")
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.require_paths = ["lib"]
 end
