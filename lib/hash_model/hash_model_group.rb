@@ -1,7 +1,7 @@
 class HashModel
   
   # Return the other records created from the same raw data record as the one(s) searched for
-  def group(index_search=nil, &block_search)
+  def group(index_search=:DontSearchForThis_195151c48a254db2949ed102c81ec579, &block_search)
     group_hm = self.clone
     # Filter the recordset if applicable
     if !index_search.nil? || !block_search.nil?

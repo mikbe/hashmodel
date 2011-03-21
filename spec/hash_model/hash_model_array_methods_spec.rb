@@ -45,8 +45,8 @@ describe HashModel do
     it "should collect across the flat data" do
       extra = -1
       @hm.collect {|record| record.merge!(:extra=>extra+=1)}.should == [
-        {:switch=>"-x", :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>0, :_group_id=>0, :extra=>0}, 
-        {:switch=>"--xtended", :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>1, :_group_id=>0, :extra=>1}, 
+        {:switch=>"-x", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :_id=>0, :_group_id=>0, :extra=>0}, 
+        {:switch=>"--xtended", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :_id=>1, :_group_id=>0, :extra=>1}, 
         {:switch=>"-y", :description=>"lucky what?", :_id=>2, :_group_id=>1, :extra=>2}, 
         {:switch=>"--why", :description=>"lucky what?", :_id=>3, :_group_id=>1, :extra=>3}, 
         {:switch=>"-z", :parameter=>{:type=>String}, :description=>"zee svitch zu moost calz", :_id=>4, :_group_id=>2, :extra=>4}
@@ -56,8 +56,8 @@ describe HashModel do
     it "should map across the flat data" do
       extra = -1
       @hm.map {|record| record.merge!(:extra=>extra+=1)}.should == [
-        {:switch=>"-x", :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>0, :_group_id=>0, :extra=>0}, 
-        {:switch=>"--xtended", :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>1, :_group_id=>0, :extra=>1}, 
+        {:switch=>"-x", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :_id=>0, :_group_id=>0, :extra=>0}, 
+        {:switch=>"--xtended", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :_id=>1, :_group_id=>0, :extra=>1}, 
         {:switch=>"-y", :description=>"lucky what?", :_id=>2, :_group_id=>1, :extra=>2}, 
         {:switch=>"--why", :description=>"lucky what?", :_id=>3, :_group_id=>1, :extra=>3}, 
         {:switch=>"-z", :parameter=>{:type=>String}, :description=>"zee svitch zu moost calz", :_id=>4, :_group_id=>2, :extra=>4}

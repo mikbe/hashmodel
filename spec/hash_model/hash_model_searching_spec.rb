@@ -60,12 +60,12 @@ describe HashModel do
 
       it "should search using the flatten_index if a symbol is used with where" do
         @records = [
-          {:switch => ["-x", "--xtended", :default], :parameter => {:type => String, :require => true}, :description => "Xish stuff"},
+          {:switch => ["-x", "--xtended", :default], :parameter => {:type => String, :required => true}, :description => "Xish stuff"},
           {:switch => ["-y", "--why"],  :description => "lucky what?"},
           {:switch => "-z",  :parameter => {:type => String}, :description => "zee svitch zu moost calz"},
         ]
         @hm = HashModel.new(:raw_data=>@records)
-        @hm.where(:default).should == [{:switch=>:default, :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>0, :_group_id=>0}]
+        @hm.where(:default).should == [{:switch=>:default, :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :_id=>0, :_group_id=>0}]
       end
 
       it "should search using an array" do
@@ -124,8 +124,8 @@ describe HashModel do
     
       it "should search the flatten index if given a block" do
         @hm.where{@parameter__type == String}.should == [
-          {:switch=>"-x", :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>0, :_group_id=>0},
-          {:switch=>"--xtended", :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>1, :_group_id=>0}, 
+          {:switch=>"-x", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :_id=>0, :_group_id=>0},
+          {:switch=>"--xtended", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :_id=>1, :_group_id=>0}, 
           {:switch=>"-z", :parameter=>{:type=>String}, :description=>"zee svitch zu moost calz", :_id=>2, :_group_id=>1}
         ]
       end

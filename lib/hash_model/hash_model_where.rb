@@ -1,12 +1,12 @@
 class HashModel
 
   # Search creating a new instance of HashModel based on this one
-  def where(index_search=nil, &block_search)
+  def where(index_search=:DontSearchForThis_195151c48a254db2949ed102c81ec579, &block_search)
     self.clone.where!(index_search, &block_search)
   end
 
   # Search the flattened records using the default flatten index or a boolean block
-  def where!(index_search=nil, &block_search)
+  def where!(index_search=:DontSearchForThis_195151c48a254db2949ed102c81ec579, &block_search)
     filter(index_search, &block_search)
     
     # Delete the raw records that don't have matches

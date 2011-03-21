@@ -10,7 +10,7 @@ describe HashModel do
           :switch__deep1__deep3 => "deepTwo",
           :parameter__type__ruby=>true,
           :parameter => "glorp",
-          :parameter__require=>true,
+          :parameter__required=>true,
           :switch__deep2 => "deepTwo",
           :description=>"Xish stuff",
           :switch => "--xtend",
@@ -19,7 +19,7 @@ describe HashModel do
             :parameter => [
               {:type=>String}, 
               "glorp", 
-              {:require=>true}
+              {:required=>true}
             ], 
             :switch => [
               {:deep1 => {:deep3=>"deepTwo"}},

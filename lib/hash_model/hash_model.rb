@@ -4,7 +4,8 @@ require 'hash_model/hash_model_group'
 require 'hash_model/hash_model_filter'
 require 'hash_model/hash_model_update'
 require 'hash_model/hash_model_where'
-
+require 'hash_model/hash_model_flatten'
+require 'hash_model/hash_model_create_object'
 
 # A simple MVC type model class for storing hashes as flattenable, searchable records
 class HashModel
@@ -19,7 +20,7 @@ class HashModel
     
     # Set values given as hashes
     parameters.each { |key,value| 
-      instance_variable_set("@#{key}", smart_clone(value)) }
+      instance_variable_set("@#{key}", value.deep_clone) }
 
     # Allow a single hash to be added with :raw_data
     @raw_data = [@raw_data] if @raw_data.class == Hash
@@ -33,7 +34,7 @@ class HashModel
 
   ## Properties
 
-  attr_accessor :flatten_index, :raw_data, :filter_proc
+  attr_accessor :flatten_index, :raw_data, :filter_proc, :filter_binding
   
   # Sets field name used to flatten the recordset
   def flatten_index=(value)
@@ -68,7 +69,7 @@ class HashModel
     value = [] if value.nil?
     raise SyntaxError, "Raw data may only be an array of hashes" if value.class != Array
     check_field_names(value)
-    @raw_data = smart_clone(value)
+    @raw_data = value.deep_clone
     flatten
   end
 
@@ -96,15 +97,17 @@ class HashModel
     @unflatten_data  = []
     @flatten_index = nil
     @filter_proc = nil
+    @filter_binding = nil
   end
 
   # Force internal arrays and variables to be cloned
   def clone
     return self if @raw_data.empty?
     flatten
-    hm = HashModel.new(:raw_data=>@raw_data.clone)
-    hm.flatten_index = @flatten_index
-    hm.filter_proc = @filter_proc
+    hm = HashModel.new(:raw_data=>@raw_data.deep_clone)
+    hm.flatten_index = @flatten_index.clone
+    hm.filter_proc = @filter_proc.clone
+    hm.filter_binding = @filter_binding
     hm
   end
 
@@ -113,7 +116,7 @@ class HashModel
   # Overload Array#<< function so we can create the flatten index as the first record is added.
   # This also allows us to send back this instance of the HashModel instead of an array.
   def <<(value)
-    value = smart_clone(value)
+    value = value.deep_clone
     case value
       when HashModel
         @raw_data.concat(value.raw_data)
@@ -188,60 +191,12 @@ class HashModel
   end
 
   # Find the raw data record based on the search criteria
-  def parents(index_search=nil, &block_search)
+  def parents(index_search=:DontSearchForThis_195151c48a254db2949ed102c81ec579, &block_search)
     flat_records = where(index_search, &block_search)
     flat_records.collect{|flat| @raw_data[flat[:_group_id]]}.uniq
   end
 
-  # Set the array value for self to the flattened hashes based on the flatten_index
-  def flatten
-    # Don't flatten the data if we don't need to
-    return self unless dirty?
 
-    id = -1
-    group_id = -1
-    @modified_data.clear
-    # set the flatten index if this is the first time the function is called
-    @flatten_index = @raw_data[0].keys[0] if @raw_data != [] && @flatten_index.nil?
-    flatten_index = @flatten_index.to_s
-
-      
-    # Change the filter so it looks for variables instead of symbols
-    unless @filter_proc.nil?
-      proc_filter = @filter_proc.clone
-      proc_filter.scan(/(:\S+) ==/).each {|match| proc_filter.sub!(match[0], match[0].sub(":","@"))}
-      proc_filter.sub!(":_group_id", "@_group_id")
-      proc_filter = "proc { #{proc_filter} }.call"
-    end
-    #dp "newfilter: #{proc_filter}"
-
-
-    # Flatten and filter the raw data
-    @raw_data.each do |record|
-      new_records, duplicate_data = flatten_hash(record, flatten_index)
-      # catch raw data records that don't have the flatten index
-      new_records << {@flatten_index.to_sym=>nil} if new_records.empty?
-      group_id += 1
-      new_records.collect! do |new_record|
-        # Double bangs aren't needed but are they more efficient?
-        new_record.merge!( duplicate_data.merge!( { :_id=>(id+=1), :_group_id=>group_id } ) )
-      end 
-
-      # Add the records to modified data if they pass the filter
-      new_records.each do |new_record|
-        #dp "rec: #{new_record}"
-        unless @filter_proc.nil?
-          flat = create_object_from_flat_hash(new_record)
-          @modified_data << new_record if flat.instance_eval proc_filter
-        else
-          @modified_data << new_record
-        end
-      end
-
-    end # raw_data.each
-    set_dirty_hash
-    self
-  end # flatten
   
   # If the hash_model has been changed but not flattened
   def dirty?
@@ -409,18 +364,10 @@ class HashModel
         
         # Add records for matching flatten fields and save duplicate record data for later addition to each record.
         input.each do |key, value|
-          #puts "\nkey: #{key}; value: #{value}"
           flat_key = "#{parent_key}#{"__" if !parent_key.nil?}#{key}"
-
-          #puts "flat_key: #{flat_key}"
-          #puts "flat_index: #{flatten_index}"
-
           flat_key_starts_with_flatten_index = flat_key.start_with?("#{flatten_index}__") 
           flatten_index_starts_with_flat_key = flatten_index.start_with?(flat_key)
-          
-          #puts "flat_key_starts_with_flatten_index: #{flat_key_starts_with_flatten_index}"
-          #puts "flatten_index_starts_with_flat_key: #{flatten_index_starts_with_flat_key}"
-          
+
           # figure out what we need to do based on where we're at in the record's value tree and man does it look ugly
           if flat_key == flatten_index
             # go deeper
@@ -453,30 +400,6 @@ class HashModel
     end # case
      return recordset, duplicate_data
   end # flatten_hash
-
-  # Creates an object with instance variables for each field at every level
-  # This allows using a block like {:field1==true && :field2_subfield21="potato"}
-  def create_object_from_flat_hash(record, hash_record=Class.new.new, parent_key=nil)
-  
-    # Iterate through the record creating the object recursively
-    case record
-      when Hash
-        record.each do |key, value|
-          flat_key = "#{parent_key}#{"__" if !parent_key.nil?}#{key}"
-          hash_record.instance_variable_set("@#{flat_key}", value)
-          hash_record = create_object_from_flat_hash(value, hash_record, flat_key)
-        end
-      when Array
-        hash_record.instance_variable_set("@#{parent_key}", record)
-        record.each do |value|
-          hash_record = create_object_from_flat_hash(value, hash_record, parent_key) if value.class == Hash
-        end
-      else
-        hash_record.instance_variable_set("@#{parent_key}", record)
-    end # case
-    
-    hash_record
-  end # create_object_from_flat_hash
 
   # Deal with the array methods allowing multiple functions to use the same code
   # You couldn't do this with alias because you can't tell what alias is used.
@@ -517,20 +440,5 @@ class HashModel
     end
   end
 
-  # It's annoying to raise an error if an object can't
-  # be cloned, like in the case of symbols, It is much
-  # more friendly, and less surprising too, just to
-  # return the same object so you can go about your work.
-  # The only reason I clone is to protect the values, if
-  # the values don't need to be protected I don't want an
-  # annoying error message hosing up my whole day. </rant>
-  def smart_clone(object)
-    # Stupid error trapping
-    begin
-      object.clone
-    rescue
-      object
-    end
-  end
 
 end # HashModel

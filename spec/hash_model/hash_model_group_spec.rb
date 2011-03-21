@@ -29,8 +29,8 @@ describe HashModel do
   
     it "should group across group_id's if searching for something that returns records from multiple groups" do
       @hm.group{:parameter__type == String}.should == [
-        {:switch=>"-x", :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>0, :_group_id=>0}, 
-        {:switch=>"--xtended", :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>1, :_group_id=>0},
+        {:switch=>"-x", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :_id=>0, :_group_id=>0}, 
+        {:switch=>"--xtended", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :_id=>1, :_group_id=>0},
         {:switch => "-z",  :parameter => {:type => String}, :description => "zee svitch zu moost calz", :_id=>4, :_group_id=>2}
       ]
     end

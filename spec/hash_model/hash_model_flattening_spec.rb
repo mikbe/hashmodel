@@ -14,11 +14,11 @@ describe HashModel do
       @hm = HashModel.new(:raw_data=>@records, :flatten_index=>:parameter)
       @hm.should == [
         {:parameter=>{:type=>String}, :switch=>["-x", "--xtended"], :description=>"Xish stuff", :_id=>0, :_group_id=>0}, 
-        {:parameter=>{:require=>true}, :switch=>["-x", "--xtended"], :description=>"Xish stuff", :_id=>1, :_group_id=>0}, 
+        {:parameter=>{:required=>true}, :switch=>["-x", "--xtended"], :description=>"Xish stuff", :_id=>1, :_group_id=>0}, 
         {:parameter=>nil, :switch=>["-y", "--why"], :description=>"lucky what?", :_id=>2, :_group_id=>1}, 
         {:parameter=>{:type=>String}, :switch=>"-z", :description=>"zee svitch zu moost calz", :_id=>3, :_group_id=>2}
       ]
-      
+  
     end
   
     it "should allow you to change the flatten index" do
@@ -76,7 +76,7 @@ describe HashModel do
       @hm = HashModel.new(:raw_data=>@records)
       @hm.flatten_index = :parameter__type
       @hm.should == [
-        {:parameter__type=>String, :switch=>["-x", "--xtended"], :parameter__require=>true, :description=>"Xish stuff", :_id=>0, :_group_id=>0}, 
+        {:parameter__type=>String, :switch=>["-x", "--xtended"], :parameter__required=>true, :description=>"Xish stuff", :_id=>0, :_group_id=>0}, 
         {:parameter__type=>nil, :switch=>["-y", "--why"], :description=>"lucky what?", :_id=>1, :_group_id=>1}, 
         {:parameter__type=>String, :switch=>"-z", :description=>"zee svitch zu moost calz", :_id=>2, :_group_id=>2}
       ]

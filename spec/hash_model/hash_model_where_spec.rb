@@ -60,12 +60,12 @@ describe HashModel do
 
       it "should search using the flatten_index if a symbol is used with where" do
         @records = [
-          {:switch => ["-x", "--xtended", :default], :parameter => {:type => String, :require => true}, :description => "Xish stuff"},
+          {:switch => ["-x", "--xtended", :default], :parameter => {:type => String, :required => true}, :description => "Xish stuff"},
           {:switch => ["-y", "--why"],  :description => "lucky what?"},
           {:switch => "-z",  :parameter => {:type => String}, :description => "zee svitch zu moost calz"},
         ]
         @hm = HashModel.new(:raw_data=>@records)
-        @hm.where(:default).should == [{:switch=>:default, :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>0, :_group_id=>0}]
+        @hm.where(:default).should == [{:switch=>:default, :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :_id=>0, :_group_id=>0}]
       end
 
       it "should search using an array" do
@@ -104,6 +104,21 @@ describe HashModel do
         proc {@hm.where!}.should change(@hm, :filtered?).from(true).to(false)
       end
       
+      context "when searching for records with nil values" do
+      
+        it "should search the flatten index" do
+          @hm.flatten_index = :parameter__type
+          @hm.filter(nil).should == [
+            {:parameter__type=>nil, :switch=>["-y", "--why"], :description=>"lucky what?", :_id=>1, :_group_id=>1}
+          ]
+        end
+
+        it "should search using a block" do
+          @hm.filter{:parameter__type == nil}.should == [@flat_records[2], @flat_records[3]]
+        end
+
+      end
+      
     end # filtering
     
     context "not in place" do
@@ -123,16 +138,16 @@ describe HashModel do
       end
     
       it "should search the flatten index if given a block" do
-        @hm.where{@parameter__type == String}.should == [
-          {:switch=>"-x", :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>0, :_group_id=>0},
-          {:switch=>"--xtended", :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>1, :_group_id=>0}, 
+        @hm.where{:parameter__type == String}.should == [
+          {:switch=>"-x", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :_id=>0, :_group_id=>0},
+          {:switch=>"--xtended", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :_id=>1, :_group_id=>0}, 
           {:switch=>"-z", :parameter=>{:type=>String}, :description=>"zee svitch zu moost calz", :_id=>2, :_group_id=>1}
         ]
       end
     
     end # not in place
 
-    context "using blocks" do
+    context "when using blocks" do
       
       it "should search using a single value boolean block" do
         @hm.where {:switch == "-x"}.should == [@flat_records[0]]
@@ -191,6 +206,33 @@ describe HashModel do
         @hm.where {:parameter == {:type => String, :required => true}}.should == [
           {:switch=>"-x", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :something=>4, :_id=>0, :_group_id=>0}, 
           {:switch=>"--xtended", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :something=>4, :_id=>1, :_group_id=>0}
+        ]
+      end
+      
+    end
+
+    context "when using variables to search" do
+      
+      it "should work with a block" do
+        variable = "-x"
+        @hm.filter{:switch == variable}.should == [@flat_records[0]]
+      end
+      
+      it "should work with a default index search" do
+        variable = "-x"
+        @hm.filter(variable).should == [@flat_records[0]]
+      end
+      
+      it "should work with classes" do
+        variable = String
+        @hm.filter{:parameter__type == variable}.should == [@flat_records[0], @flat_records[1], @flat_records[4]]
+      end
+
+      it "should work with deeply nested default indexes" do
+        @hm.flatten_index = :parameter__type
+        variable = nil
+        @hm.filter(variable).should == [
+          {:parameter__type=>nil, :switch=>["-y", "--why"], :description=>"lucky what?", :_id=>1, :_group_id=>1}
         ]
       end
       

@@ -4,9 +4,9 @@ A simple MVC type model class for storing deeply nested hashes as records.
 It's meant to be used for small, in-memory recordset that you want an easy, flexible way to query.
 It is not meant as a data storage device for managing huge datasets.
 
-## Synopsis
+## Synopsis ##
 
-The major usefulness of this class is it allows you to filter and search flattened records based on any field. You can even updated and delete data now.
+The major usefulness of this class is it allows you to filter and search flattened records based on any field. You can even updated and delete data now! Exclamation!
 
 A field can contain anything, including another hash, a string, an array, or even an Object class like String or Array, not just an instance of an Object class.
 
@@ -14,7 +14,7 @@ Searches are very simple and logical. You can search using just using the value 
 
     require 'hashmodel'
     records = [  
-      {:switch => ["-x", "--xtended"], :parameter => {:type => String, :require => true}, :description => "Xish stuff"},  
+      {:switch => ["-x", "--xtended"], :parameter => {:type => String, :required => true}, :description => "Xish stuff"},  
       {:switch => ["-y", "--why"],  :description => "lucky what?"},  
       {:switch => "-z",  :parameter => {:type => String}, :description => "zee svitch zu moost calz"},  
     ]  
@@ -22,34 +22,50 @@ Searches are very simple and logical. You can search using just using the value 
     found = hash_model.where("-x")  => Returns an array of flattened records  
 
 
-Or more powerfully you can search using boolean like logic e.g.  
+Or more powerfully you can search using boolean like logic with dynamic variables:  
    
-    hash_model = HashModel.new(:raw_data=>records)  
-    found = hash_model.where {:switch == "-x" && :parameter__type == String}  => Returns an array of flattened records  
+    x = "-x"
+    param_type = String
+    found = hash_model.where {:switch == x && :parameter__type == param_type}  => Returns an array of flattened records  
 
+If you want to update a record in place you can do that as well:
 
-## Status
+    x = "-x"
+    param_type = String
+    updated = hash_model.update!(x, :parameter__type => param_type)  => Returns an array of flattened records  
 
-2011.03.19 - Beta: 0.4.0.beta1
+For more info checkout the rdocs and also checkout the change history below. I go in-depth on the new method calls.
 
-Lots of changes with this one. Mostly the ability to write to the HashModel and a few bug fixes. See Version History for details.
+## Status ##
 
-## Usage
+2011.03.19 - Beta: 0.4.0.beta2
+
+Lots of changes with this one. The major changes are the ability to write to the HashModel data. See Version History for details.
+
+I fixed a **huge** bug that caused variables not to be ignored in boolean searches. It's all fixed now and there are specs to prove make sure it doesn't happen again.
+
+## Demo App ##
+
+Check out Widget for a demo of just how easy it is to use HashModel. It now has a lot of complexity but it's a breeze to use:
+
+https://github.com/mikbe/widget
+
+## Usage ##
 
 I've covered most of the major stuff here but to see all of the functionality take a look at the RSpec files.
 
 ### **Creating with an array of hashes**  
     require 'hashmodel'
     records = [  
-      {:switch => ["-x", "--xtended"], :parameter => {:type => String, :require => true}, :description => "Xish stuff"},  
+      {:switch => ["-x", "--xtended"], :parameter => {:type => String, :required => true}, :description => "Xish stuff"},  
       {:switch => ["-y", "--why"],  :description => "lucky what?"},  
       {:switch => "-z",  :parameter => {:type => String}, :description => "zee svitch zu moost calz"},  
     ]  
     hash_model = HashModel.new(:raw_data=>records)  
 
     puts hash_model  
-    >> {:switch=>"-x", :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>0, :_group_id=>0}  
-    >> {:switch=>"--xtended", :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>1, :_group_id=>0}  
+    >> {:switch=>"-x", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :_id=>0, :_group_id=>0}  
+    >> {:switch=>"--xtended", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :_id=>1, :_group_id=>0}  
     >> {:switch=>"-y", :description=>"lucky what?", :_id=>2, :_group_id=>1}  
     >> {:switch=>"--why", :description=>"lucky what?", :_id=>3, :_group_id=>1}  
     >> {:switch=>"-z", :parameter=>{:type=>String}, :description=>"zee svitch zu moost calz", :_id=>4, :_group_id=>2}  
@@ -73,7 +89,7 @@ I've covered most of the major stuff here but to see all of the functionality ta
     # You can also add another HashModel object to the existing one
     # and it will add the raw records and reflatten.
     records = [  
-      {:switch => ["-x", "--xtended"], :parameter => {:type => String, :require => true}, :description => "Xish stuff"},  
+      {:switch => ["-x", "--xtended"], :parameter => {:type => String, :required => true}, :description => "Xish stuff"},  
       {:switch => ["-y", "--why"],  :description => "lucky what?"}
     ]
 
@@ -91,14 +107,14 @@ I've covered most of the major stuff here but to see all of the functionality ta
     # You can always edit and access the raw data via the raw_data property accessor
     # When you make changes to the raw_data the HashModel will automatically be updated.
     records = [  
-      {:switch => ["-x", "--xtended"], :parameter => {:type => String, :require => true}, :description => "Xish stuff"},  
+      {:switch => ["-x", "--xtended"], :parameter => {:type => String, :required => true}, :description => "Xish stuff"},  
       {:switch => ["-y", "--why"],  :description => "lucky what?"},  
       {:switch => "-z",  :parameter => {:type => String}, :description => "zee svitch zu moost calz"},  
     ]  
     hash_model = HashModel.new(:raw_data=>records) 
     
     puts hash_model.raw_data
-    >> {:switch => ["-x", "--xtended"], :parameter => {:type => String, :require => true}, :description => "Xish stuff"}  
+    >> {:switch => ["-x", "--xtended"], :parameter => {:type => String, :required => true}, :description => "Xish stuff"}  
     >> {:switch => ["-y", "--why"],  :description => "lucky what?"}  
     >> {:switch => "-z",  :parameter => {:type => String}, :description => "zee svitch zu moost calz"}  
   	
@@ -196,7 +212,7 @@ I've covered most of the major stuff here but to see all of the functionality ta
     hash_model << {:switch=>"-x", :parameter__type=>String, :parameter__require=>true, :description=>"Xish stuff"}
     
     puts hash_model.raw_data
-    >> {:switch => "-x", :parameter => {:type => String, :require => true}, :description => "Xish stuff"}
+    >> {:switch => "-x", :parameter => {:type => String, :required => true}, :description => "Xish stuff"}
     
     # You can also call the unflatten method on an instance or the class itself and send it a record. (It won't mess with the existing data.)
     deep_hash =  { 
@@ -212,19 +228,28 @@ I've covered most of the major stuff here but to see all of the functionality ta
     unflat = HashModel.unflatten(deep_hash) 
   
     puts unflat
-    >> {:parameter=>[{:type=>String}, "glorp", {:require=>true}], :switch=>[{:deep1=>{:deep3=>"deepTwo"}}, {:deep2=>"deepTwo"}, "--xtend"], :description=>"Xish stuff"}
+    >> {:parameter=>[{:type=>String}, "glorp", {:required=>true}], :switch=>[{:deep1=>{:deep3=>"deepTwo"}}, {:deep2=>"deepTwo"}, "--xtend"], :description=>"Xish stuff"}
   
 
 ## Version History ##
 
-0.4.0.beta1 - 2011.03-19
+0.4.0.beta2 - 2011.03-21
 
 Lots of updates and code fixes for this release. After using it for a little while I've broken down and added the write functionality I was avoiding previously. 
+
+I fixed a **major** bug/design flaw that didn't let you use variables in a boolean block. For instance this was supposed to work but didn't:
+
+    x = "-x"
+    hm.where{:x == x}
+    
+It works properly now.
 
 **Additions/Changes**
 
 #### Methods: `update` and `update!` methods ####
-These methods use a `where` like search that is slightly different. The methods look like this `update(default_index_search, field_new_value_hash, boolean_search_block)`. So if you search using a single value, a default index search, then you put the update hashes at the end. If you want to search using a boolean search then you put the update hashes at the beginning.
+These methods use a `where` like search that is slightly different. As you would expect the `update` method returns a changed copy of the HashModel while `update!` changes the data in place.
+
+The methods look like this `update(default_index_search, field_new_value_hash, boolean_search_block)`. So if you search using a single value, a default index search, then you put the update hashes at the end. If you want to search using a boolean search then you put the update hashes at the beginning.
 
 For instance:
 
@@ -234,17 +259,29 @@ For instance:
     # Boolean search 
     my_hash_model.update(:parameter__type=>Fixnum) {:switch == "-x"}
 
-You don't have to put in any search criteria at all though, you can just put in the field you want updated and it will update all records that are in the current filter set. 
+
+You can update more than one field at a time as well. When you do this make sure you wrap them in hash markers {}:
+
+    my_hash_model.update("-x", {:field_1=>"new value", :field_2=>"another new value"})
 
 
-#### Methods: `update` and `update!` methods ####
-Just like `update` and `update!` but will also add a hash if it doesn't exist already.
+It's important to note that searches in an `update` will search the entire recordset. i.e. they will ignore the current filter. They will reset that filter when they are done so if you change the value of the primary index then you'll have an empty recordset. I realize it would be better to make the filters additive, and I will, but that will have to wait for the next update. 
+
+You don't have to put in any search criteria at all though, you can just put in the field you want updated and it will update all records that are in the current filter set.
+
+    my_hash_model.update(:field_1=>"new value")
+
+All of the `update` methods will return the records that were updated with the updates in place. If no records were updated then it will return an empty array. It currently returns the raw records that are or would be deleted but I will be changing it to return the flattened records. That will be in the next update.
+
+#### Methods: `update_and_add` and `update_and_add!` methods ####
+Just like `update` and `update!` but will also add a hash if it doesn't exist already. Again the ! method changes the records in place.
 
 For instance if your HashModel has a record like `{:a=>"a"}` and you do `my_hash_model.update(:b=>"b")` it won't change that record, but it you do `my_hash_model.update_and_add(:b=>"b")` then your record will be `{:a=>'a', :b=>"b"}`.
 
-
 #### Methods: `delete` and `delete!` ####
-These use a the standard `where` type search used everywhere else. This function removes data from the raw data so if you have other flattened records that are based on that raw data they will no longer exist since the data that generated them is gone.  
+These use  the standard `where` type search used everywhere else. You guessed it, the `delete!` method deletes in place while the `delete` method returns the records that would be deleted.
+
+This function removes data from the raw data so if you have other flattened records that are based on that raw data they will no longer exist since the data that generated them is gone.  
 
 Just like an array these methods return the records they deleted.
 
@@ -258,7 +295,7 @@ Filter has been changed from a property to a method. It is exactly like a `where
 Changed to be truly destructive. If you run a where! on the class you're losing records that don't match it. The non-destructive version `where` is changed in that it does not contain the raw data of any records that don't match the `where` clause but the original HashModel remains untouched.
 
 #### Removed: `group!` ####
-Since bangs (!) are all now destructive, to bring the class inline with Ruby standards, it doesn't make logical sense to have a a group method that deletes all data except the search data then tries to find siblings; they were just deleted with the destructive call. Instead just use `group` and it will return the sibling records without touching the data in the HashModel.
+Since bangs (!) are all now destructive, to bring the class inline with Ruby standards, it doesn't make logical sense to have a a group method that deletes all data except the search data then tries to find siblings; they would have been deleted with the destructive call. Instead just use `group` and it will return the sibling records without touching the data in the HashModel.
 
 #### Other changes ####
 Because of the new destructive methods all input values will be cloned. You don't have to worry about cloning input objects yourself. If it's clonable HashModel will clone it.
@@ -267,7 +304,8 @@ I've reorganized the code into multiple files based on functionality to make it 
 
 Cleaned up RSpecs a little along the lines of reorganization.
 
-#### Bug fixes ####
+#### Bugs fixed ####
+* Didn't use variable in where searches.
 * Threw error if you searched an empty HashModel (can't build a flatten index on nothing)
 * Couldn't change the flatten index in some rare cases. 
 

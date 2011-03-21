@@ -18,7 +18,7 @@ describe HashModel do
         @hm = HashModel.new
         @hm << @records[0]
         proc{@hm.clear}.should change(@hm, :raw_data)
-          .from([{:switch => ["-x", "--xtended"], :parameter => {:type => String, :require => true}, :description => "Xish stuff"}])
+          .from([{:switch => ["-x", "--xtended"], :parameter => {:type => String, :required => true}, :description => "Xish stuff"}])
           .to([])
       end
       

@@ -34,15 +34,15 @@ describe HashModel do
      
     it "should add an array with mixed value types" do
       @records = [
-        {:switch => ["-x", "--xtended", :default], :parameter => {:type => String, :require => true}, :description => "Xish stuff"},
+        {:switch => ["-x", "--xtended", :default], :parameter => {:type => String, :required => true}, :description => "Xish stuff"},
         {:switch => ["-y", "--why"],  :description => "lucky what?"},
         {:switch => "-z",  :parameter => {:type => String}, :description => "zee svitch zu moost calz"},
       ]
       @hm = HashModel.new(:raw_data=>@records)
       @hm.should == [
-        {:switch=>"-x", :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>0, :_group_id=>0}, 
-        {:switch=>"--xtended", :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>1, :_group_id=>0}, 
-        {:switch=>:default, :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>2, :_group_id=>0},
+        {:switch=>"-x", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :_id=>0, :_group_id=>0}, 
+        {:switch=>"--xtended", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :_id=>1, :_group_id=>0}, 
+        {:switch=>:default, :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :_id=>2, :_group_id=>0},
         {:switch=>"-y", :description=>"lucky what?", :_id=>3, :_group_id=>1}, 
         {:switch=>"--why", :description=>"lucky what?", :_id=>4, :_group_id=>1}, 
         {:switch=>"-z", :parameter=>{:type=>String}, :description=>"zee svitch zu moost calz", :_id=>5, :_group_id=>2}
@@ -68,18 +68,18 @@ describe HashModel do
     it "should allow an array of HashModels to be added" do
       @hm.add([@hm, @hm2])
       @hm.should == [
-        {:switch=>"-x", :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>0, :_group_id=>0}, 
-        {:switch=>"--xtended", :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>1, :_group_id=>0}, 
+        {:switch=>"-x", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :_id=>0, :_group_id=>0}, 
+        {:switch=>"--xtended", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :_id=>1, :_group_id=>0}, 
         {:switch=>"-y", :description=>"lucky what?", :_id=>2, :_group_id=>1}, 
         {:switch=>"--why", :description=>"lucky what?", :_id=>3, :_group_id=>1}, 
         {:switch=>"-z", :parameter=>{:type=>String}, :description=>"zee svitch zu moost calz", :_id=>4, :_group_id=>2}, 
-        {:switch=>"-x", :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>5, :_group_id=>3}, 
-        {:switch=>"--xtended", :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>6, :_group_id=>3}, 
+        {:switch=>"-x", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :_id=>5, :_group_id=>3}, 
+        {:switch=>"--xtended", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :_id=>6, :_group_id=>3}, 
         {:switch=>"-y", :description=>"lucky what?", :_id=>7, :_group_id=>4}, 
         {:switch=>"--why", :description=>"lucky what?", :_id=>8, :_group_id=>4}, 
         {:switch=>"-z", :parameter=>{:type=>String}, :description=>"zee svitch zu moost calz", :_id=>9, :_group_id=>5}, 
-        {:switch=>"-p", :parameter=>{:type=>Hash, :require=>false}, :description=>"Pea soup", :_id=>10, :_group_id=>6}, 
-        {:switch=>"--pea", :parameter=>{:type=>Hash, :require=>false}, :description=>"Pea soup", :_id=>11, :_group_id=>6}, 
+        {:switch=>"-p", :parameter=>{:type=>Hash, :required=>false}, :description=>"Pea soup", :_id=>10, :_group_id=>6}, 
+        {:switch=>"--pea", :parameter=>{:type=>Hash, :required=>false}, :description=>"Pea soup", :_id=>11, :_group_id=>6}, 
         {:switch=>"-q", :description=>"exit the game", :_id=>12, :_group_id=>7}, 
         {:switch=>"--quit", :description=>"exit the game", :_id=>13, :_group_id=>7}, 
         {:switch=>"-r", :parameter=>{:type=>Fixnum}, :description=>"Arrrrrrrrrrgh!", :_id=>14, :_group_id=>8}
@@ -126,22 +126,22 @@ describe HashModel do
     
       it "should allow a flattened record to be added" do
         @hm = HashModel.new
-        @hm << {:switch=>"-x", :parameter__type=>String, :parameter__require=>true, :description=>"Xish stuff"}
-        @hm.raw_data.should == [{:switch => "-x", :parameter => {:type => String, :require => true}, :description => "Xish stuff"}]
+        @hm << {:switch=>"-x", :parameter__type=>String, :parameter__required=>true, :description=>"Xish stuff"}
+        @hm.raw_data.should == [{:switch => "-x", :parameter => {:type => String, :required => true}, :description => "Xish stuff"}]
       end
 
       it "should allow a flattened record to be added even with arrays in it" do
         @hm = HashModel.new
         @hm << {:switch=>["-x", "--xtend"], 
                   :parameter__type=>String, 
-                  :parameter__require=>true, 
+                  :parameter__required=>true, 
                   :description=>"Xish stuff", 
                   :field__field2 => {:field3 => "ff3", :field4 => "ff4"}
                }
         @hm.raw_data.should == [ 
                                 {
                                     :switch => ["-x", "--xtend"], 
-                                    :parameter => {:type => String, :require => true}, 
+                                    :parameter => {:type => String, :required => true}, 
                                     :description => "Xish stuff", 
                                     :field => {:field2 => {:field3 => "ff3", :field4 => "ff4"}}
                                  }
@@ -154,7 +154,7 @@ describe HashModel do
           :switch__deep1__deep3 => "deepTwo",
           :parameter__type__ruby=>true,
           :parameter => "glorp",
-          :parameter__require=>true,
+          :parameter__required=>true,
           :switch__deep2 => "deepTwo",
           :description=>"Xish stuff",
           :switch => "--xtend",
@@ -166,7 +166,7 @@ describe HashModel do
             :parameter => [
               {:type=>String}, 
               "glorp", 
-              {:require=>true}
+              {:required=>true}
             ], 
             :switch => [
               {:deep1 => {:deep3=>"deepTwo"}},
@@ -250,10 +250,10 @@ describe HashModel do
       
       it "should return a HashModel with twice the amount of raw data if * 2'd" do
         (@hm * 2).raw_data.should == [
-          {:switch=>["-x", "--xtended"], :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff"}, 
+          {:switch=>["-x", "--xtended"], :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff"}, 
           {:switch=>["-y", "--why"], :description=>"lucky what?"}, 
           {:switch=>"-z", :parameter=>{:type=>String}, :description=>"zee svitch zu moost calz"},
-          {:switch=>["-x", "--xtended"], :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff"}, 
+          {:switch=>["-x", "--xtended"], :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff"}, 
           {:switch=>["-y", "--why"], :description=>"lucky what?"}, 
           {:switch=>"-z", :parameter=>{:type=>String}, :description=>"zee svitch zu moost calz"}
         ]
@@ -270,13 +270,13 @@ describe HashModel do
       it "should change current raw to twice its old raw data if *= 2'd" do
         @hm *= 2
         @hm.should == [
-          {:switch=>"-x", :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>0, :_group_id=>0}, 
-          {:switch=>"--xtended", :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>1, :_group_id=>0}, 
+          {:switch=>"-x", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :_id=>0, :_group_id=>0}, 
+          {:switch=>"--xtended", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :_id=>1, :_group_id=>0}, 
           {:switch=>"-y", :description=>"lucky what?", :_id=>2, :_group_id=>1}, 
           {:switch=>"--why", :description=>"lucky what?", :_id=>3, :_group_id=>1},
           {:switch=>"-z", :parameter=>{:type=>String}, :description=>"zee svitch zu moost calz", :_id=>4, :_group_id=>2}, 
-          {:switch=>"-x", :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>5, :_group_id=>3}, 
-          {:switch=>"--xtended", :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>6, :_group_id=>3}, 
+          {:switch=>"-x", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :_id=>5, :_group_id=>3}, 
+          {:switch=>"--xtended", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :_id=>6, :_group_id=>3}, 
           {:switch=>"-y", :description=>"lucky what?", :_id=>7, :_group_id=>4}, 
           {:switch=>"--why", :description=>"lucky what?", :_id=>8, :_group_id=>4}, 
           {:switch=>"-z", :parameter=>{:type=>String}, :description=>"zee svitch zu moost calz", :_id=>9, :_group_id=>5}
@@ -289,13 +289,13 @@ describe HashModel do
       
       it "should concatinate using a single Hash" do
         @hm.concat(@records2[0]).should == [
-          {:switch=>"-x", :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>0, :_group_id=>0}, 
-          {:switch=>"--xtended", :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>1, :_group_id=>0}, 
+          {:switch=>"-x", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :_id=>0, :_group_id=>0}, 
+          {:switch=>"--xtended", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :_id=>1, :_group_id=>0}, 
           {:switch=>"-y", :description=>"lucky what?", :_id=>2, :_group_id=>1}, 
           {:switch=>"--why", :description=>"lucky what?", :_id=>3, :_group_id=>1}, 
           {:switch=>"-z", :parameter=>{:type=>String}, :description=>"zee svitch zu moost calz", :_id=>4, :_group_id=>2}, 
-          {:switch=>"-p", :parameter=>{:type=>Hash, :require=>false}, :description=>"Pea soup", :_id=>5, :_group_id=>3}, 
-          {:switch=>"--pea", :parameter=>{:type=>Hash, :require=>false}, :description=>"Pea soup", :_id=>6, :_group_id=>3}
+          {:switch=>"-p", :parameter=>{:type=>Hash, :required=>false}, :description=>"Pea soup", :_id=>5, :_group_id=>3}, 
+          {:switch=>"--pea", :parameter=>{:type=>Hash, :required=>false}, :description=>"Pea soup", :_id=>6, :_group_id=>3}
         ]
       end
       
@@ -313,13 +313,13 @@ describe HashModel do
       
       it "should add a single Hash" do
         @hm.push(@records2[0]).should == [
-          {:switch=>"-x", :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>0, :_group_id=>0}, 
-          {:switch=>"--xtended", :parameter=>{:type=>String, :require=>true}, :description=>"Xish stuff", :_id=>1, :_group_id=>0}, 
+          {:switch=>"-x", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :_id=>0, :_group_id=>0}, 
+          {:switch=>"--xtended", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :_id=>1, :_group_id=>0}, 
           {:switch=>"-y", :description=>"lucky what?", :_id=>2, :_group_id=>1}, 
           {:switch=>"--why", :description=>"lucky what?", :_id=>3, :_group_id=>1}, 
           {:switch=>"-z", :parameter=>{:type=>String}, :description=>"zee svitch zu moost calz", :_id=>4, :_group_id=>2}, 
-          {:switch=>"-p", :parameter=>{:type=>Hash, :require=>false}, :description=>"Pea soup", :_id=>5, :_group_id=>3}, 
-          {:switch=>"--pea", :parameter=>{:type=>Hash, :require=>false}, :description=>"Pea soup", :_id=>6, :_group_id=>3}
+          {:switch=>"-p", :parameter=>{:type=>Hash, :required=>false}, :description=>"Pea soup", :_id=>5, :_group_id=>3}, 
+          {:switch=>"--pea", :parameter=>{:type=>Hash, :required=>false}, :description=>"Pea soup", :_id=>6, :_group_id=>3}
         ]
       end
       
