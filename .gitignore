@@ -7,5 +7,5 @@ pkg
 .DS_Store
 *.tmproj
 tmtags
-vendor
 vendor/**/*
+tmp/**/*
