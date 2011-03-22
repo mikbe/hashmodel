@@ -38,7 +38,7 @@ For more info checkout the rdocs and also checkout the change history below. I g
 
 ## Status ##
 
-2011.03.19 - Beta: 0.4.0.beta2
+2011.03.21 - Release Candidate: 0.4.0.rc1
 
 Lots of changes with this one. The major changes are the ability to write to the HashModel data. See Version History for details.
 
@@ -233,7 +233,7 @@ I've covered most of the major stuff here but to see all of the functionality ta
 
 ## Version History ##
 
-0.4.0.beta2 - 2011.03-21
+0.4.0.rc1 - 2011.03-21
 
 Lots of updates and code fixes for this release. After using it for a little while I've broken down and added the write functionality I was avoiding previously. 
 
