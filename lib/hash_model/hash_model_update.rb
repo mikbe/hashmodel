@@ -11,7 +11,7 @@ class HashModel
   # is based on the raw_data that's changed that record will be changed too.
   # Returns the records that were updated.
   def update!(index_search=:DontSearchForThis_195151c48a254db2949ed102c81ec579, update_hash, &block_search)
-    
+
     # only filter if they sent something to be filter otherwise leave the filter alone
     unless index_search == :DontSearchForThis_195151c48a254db2949ed102c81ec579 && block_search.nil?
       old_filter = @filter_proc
@@ -99,7 +99,7 @@ class HashModel
     source_hash.each do |source_hash_key, source_hash_value|
       current_key = "#{parent_key}#{"__" if parent_key}#{source_hash_key}".to_sym 
       if current_key == terminal_key
-        return unless target_hash[source_hash_key] or add
+        return if target_hash.nil? or !(target_hash[source_hash_key] or add)
         target_hash[source_hash_key] = source_hash_value
         save_change << record_id
       else

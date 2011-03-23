@@ -11,7 +11,14 @@ Gem::Specification.new do |s|
   s.email                   = ["mikbe.tk@gmail.com"]
   s.homepage                = "http://mikbe.tk"
   s.summary                 = %q{A hash based MVC model class that makes searching and updating deeply nested hashes a breeze.}
-  s.description             = %q{A hash based MVC model class that makes searching and updating deeply nested hashes a breeze. You can store deeply nested hashes and still easily flatten, query, and update the records using flattened field names.}
+  s.description             = 
+"""
+A hash based MVC model class that makes searching and updating deeply nested hashes a breeze.
+You can store deeply nested hashes and still easily flatten, query, and update the records using flattened field names.
+It's meant to be used for small, in-memory recordset that you want an easy, flexible way to query.
+It is not meant as a data storage device for managing huge datasets.
+"""
+
   s.license                 = 'MIT'
   
   s.add_dependency "sourcify", "~>0.4"

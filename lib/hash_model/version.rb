@@ -3,8 +3,8 @@ class HashModel
     MAJOR  = 0
     MINOR  = 4
     TINY   = 0
-    PRE    = "rc1"
-
+    PRE    = nil
+    
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join('.')
 
     SUMMARY = "HashModel #{STRING}"

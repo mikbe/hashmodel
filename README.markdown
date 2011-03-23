@@ -1,12 +1,22 @@
 # HashModel
 
-A simple MVC type model class for storing deeply nested hashes as records.
-It's meant to be used for small, in-memory recordset that you want an easy, flexible way to query.
+A hash based MVC model class that makes searching and updating deeply nested hashes a breeze.
+It's meant to be used for small, in-memory hash based recordset that you want an easy, flexible way to query and update.
 It is not meant as a data storage device for managing huge datasets.
+
+## Testing for a Better Tomorrow ##
+
+I have the gem set up to ask if you would like to test on install so please allow the tests to run and upload. This will allow me to find any problems on different platforms. 
+
+You can take a look at the test results yourself here:
+
+http://test.rubygems.org/gems/hashmodel/v/0.4.0
+
+Thanks for your help.
 
 ## Synopsis ##
 
-The major usefulness of this class is it allows you to filter and search flattened records based on any field. You can even updated and delete data now! Exclamation!
+HashModel allows you to filter, search, and updated flattened records based on any field, even deeply nested ones. You can even updated and delete data!
 
 A field can contain anything, including another hash, a string, an array, or even an Object class like String or Array, not just an instance of an Object class.
 
@@ -21,28 +31,60 @@ Searches are very simple and logical. You can search using just using the value 
     hash_model = HashModel.new(:raw_data=>records)  
     found = hash_model.where("-x")  => Returns an array of flattened records  
 
+If you want to filter the data temporarily, but not delete any data, use `filter`:
 
-Or more powerfully you can search using boolean like logic with dynamic variables:  
+    x = "-x"
+    found = hash_model.filter{:switch == x}
+    found == hash_model # => true
+    
+    # To clear the filter just call it without any parameters
+    hash_model.filter
+    found.filter
+    found == hash_model # => true
+
+If you want a copy of your data with just the records that don't match your query use `where`:
    
+    param_type = String
+    found = hash_model.where{:parameter__type == param_type}
+    found.raw_data != hash_model.raw_data # => true
+
+To permanently remove the raw data that doesn't match your query use `where!`:
+
+    param_type = String
+    found = hash_model.where!{:parameter__type == param_type}
+    found.raw_data == hash_model.raw_data # => true
+
+If you want a copy of your data with the data updated use `update`:
+
+    where = {:switch == "-x"}
+    param_type = String
+    updated = hash_model.update(:parameter__type => param_type) &where
+    updated.raw_data != hash_model.raw_data # => true
+
+As you would expect you can also update your data in place using `update!`:
+
     x = "-x"
     param_type = String
-    found = hash_model.where {:switch == x && :parameter__type == param_type}  => Returns an array of flattened records  
+    updated = hash_model.update!(x, :parameter__type => param_type) 
+    updated.raw_data == hash_model.raw_data # => true
 
-If you want to update a record in place you can do that as well:
+If you want to update a recored an add a field if it doesn't exist you can use `update_and_add`:
 
     x = "-x"
     param_type = String
-    updated = hash_model.update!(x, :parameter__type => param_type)  => Returns an array of flattened records  
+    updated = hash_model.update!(x, :parameter__type => param_type) 
+    updated.raw_data == hash_model.raw_data # => true
+
 
 For more info checkout the rdocs and also checkout the change history below. I go in-depth on the new method calls.
 
 ## Status ##
 
-2011.03.21 - Release Candidate: 0.4.0.rc1
+2011.03.23 - Release: 0.4.0
 
 Lots of changes with this one. The major changes are the ability to write to the HashModel data. See Version History for details.
 
-I fixed a **huge** bug that caused variables not to be ignored in boolean searches. It's all fixed now and there are specs to prove make sure it doesn't happen again.
+I fixed a **huge** bug that caused variables to be ignored in boolean searches. It's all fixed now and there are specs to prove make sure it doesn't happen again.
 
 ## Demo App ##
 
@@ -233,11 +275,13 @@ I've covered most of the major stuff here but to see all of the functionality ta
 
 ## Version History ##
 
-0.4.0.rc1 - 2011.03-21
+0.4.0 - 2011.03-23
 
-Lots of updates and code fixes for this release. After using it for a little while I've broken down and added the write functionality I was avoiding previously. 
+**Lots of updates and a major bug fix for this release.**
 
-I fixed a **major** bug/design flaw that didn't let you use variables in a boolean block. For instance this was supposed to work but didn't:
+After using it for a little while I've broken down and added the write functionality I was avoiding previously. 
+
+I also fixed a **major** bug/design flaw that didn't let you use variables in a boolean block. For instance this was supposed to work but didn't:
 
     x = "-x"
     hm.where{:x == x}
@@ -246,7 +290,7 @@ It works properly now.
 
 **Additions/Changes**
 
-#### Methods: `update` and `update!` methods ####
+#### Methods: `update` and `update!` ####
 These methods use a `where` like search that is slightly different. As you would expect the `update` method returns a changed copy of the HashModel while `update!` changes the data in place.
 
 The methods look like this `update(default_index_search, field_new_value_hash, boolean_search_block)`. So if you search using a single value, a default index search, then you put the update hashes at the end. If you want to search using a boolean search then you put the update hashes at the beginning.
@@ -273,7 +317,7 @@ You don't have to put in any search criteria at all though, you can just put in 
 
 All of the `update` methods will return the records that were updated with the updates in place. If no records were updated then it will return an empty array. It currently returns the raw records that are or would be deleted but I will be changing it to return the flattened records. That will be in the next update.
 
-#### Methods: `update_and_add` and `update_and_add!` methods ####
+#### Methods: `update_and_add` and `update_and_add!` ####
 Just like `update` and `update!` but will also add a hash if it doesn't exist already. Again the ! method changes the records in place.
 
 For instance if your HashModel has a record like `{:a=>"a"}` and you do `my_hash_model.update(:b=>"b")` it won't change that record, but it you do `my_hash_model.update_and_add(:b=>"b")` then your record will be `{:a=>'a', :b=>"b"}`.
@@ -300,7 +344,7 @@ Since bangs (!) are all now destructive, to bring the class inline with Ruby sta
 #### Other changes ####
 Because of the new destructive methods all input values will be cloned. You don't have to worry about cloning input objects yourself. If it's clonable HashModel will clone it.
 
-I've reorganized the code into multiple files based on functionality to make it easier to debug when adding new features. This is in anticipation of a major cleanup and refactoring.
+I've reorganized the code into multiple files based on functionality to make it easier to debug when adding new features. I've done some refactoring but I plan on a major cleanup and refactoring for the next version. That version won't have too many new features but will be a major clean up and optimization.
 
 Cleaned up RSpecs a little along the lines of reorganization.
 
@@ -308,6 +352,7 @@ Cleaned up RSpecs a little along the lines of reorganization.
 * Didn't use variable in where searches.
 * Threw error if you searched an empty HashModel (can't build a flatten index on nothing)
 * Couldn't change the flatten index in some rare cases. 
+* Threw error when filtering on non-existent fields.
 
 0.3.1 - 2011.03.18
 
@@ -342,6 +387,13 @@ e.g. hash_model.where{:x == "x" && :y == "y"} instead of the less natural hash_m
 
 * Initial publish  
 * Released on wrong RubyGems account (yanked)
+
+## Planned Updates ##
+
+* Add a simple load/save to file methodology that's **FAST!**
+* Make :\_group\_id and :\_id fields not show up by default. They'll still be accessible but they are really more internal values than external so it would be cleaner not to show them.
+* Major refactor for memory efficiency, speed, and general code de-stink.
+* Allow additive filters, i.e. filter on one thing then filter on another and they second filter is based on the first filter. This would also be applicable for `update` and `where` methods; any time a filter is given.
 
 
 ## Contributing to HashModel ##
