@@ -6,9 +6,15 @@ It is not meant as a data storage device for managing huge datasets.
 
 ## Testing for a Better Tomorrow ##
 
-I have the gem set up to ask if you would like to test on install so please allow the tests to run and upload. This will allow me to find any problems on different platforms. 
+In an effort to make the best possible software I'm asking anyone that would like to help out to run the BDD/TDD tests included with the gem. If you don't already have the `rubygems-test` gem installed please install it:
 
-You can take a look at the test results yourself here:
+    $ gem install rubygems-test
+
+And then run the tests on your machine:
+
+    $ gem test hashmodel
+
+And of course upload them when it asks you if it can. You can take a look at the test results yourself here:
 
 <http://test.rubygems.org/gems/hashmodel/v/0.4.0>
 
@@ -20,7 +26,7 @@ HashModel allows you to filter, search, and updated flattened records based on a
 
 A field can contain anything, including another hash, a string, an array, or even an Object class like String or Array, not just an instance of an Object class.
 
-Searches are very simple and logical. You can search using just using the value of the default index 
+Searches are very simple and logical. You can search just using the value of the default index: 
 
     require 'hashmodel'
     records = [  
@@ -29,7 +35,8 @@ Searches are very simple and logical. You can search using just using the value 
       {:switch => "-z",  :parameter => {:type => String}, :description => "zee svitch zu moost calz"},  
     ]  
     hash_model = HashModel.new(:raw_data=>records)  
-    found = hash_model.where("-x")  => Returns an array of flattened records  
+    found = hash_model.where("-x")
+    => [{:switch=>"-x", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :_id=>0, :_group_id=>0}] 
 
 If you want to filter the data temporarily, but not delete any data, use `filter`:
 
@@ -42,7 +49,7 @@ If you want to filter the data temporarily, but not delete any data, use `filter
     found.filter
     found == hash_model # => true
 
-If you want a copy of your data with just the records that don't match your query use `where`:
+If you want a copy of your data with just the records that match your query use `where`:
    
     param_type = String
     found = hash_model.where{:parameter__type == param_type}
@@ -53,30 +60,42 @@ To permanently remove the raw data that doesn't match your query use `where!`:
     param_type = String
     found = hash_model.where!{:parameter__type == param_type}
     found.raw_data == hash_model.raw_data # => true
+    p hash_model
+    [{:switch=>"-x", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :_id=>0, :_group_id=>0}, 
+    {:switch=>"--xtended", :parameter=>{:type=>String, :required=>true}, :description=>"Xish stuff", :_id=>1, :_group_id=>0}, 
+    {:switch=>"-z", :parameter=>{:type=>String}, :description=>"zee svitch zu moost calz", :_id=>2, :_group_id=>1}]
+    
 
 If you want a copy of your data with the data updated use `update`:
 
-    where = {:switch == "-x"}
-    param_type = String
-    updated = hash_model.update(:parameter__type => param_type) &where
+    where = lambda{:switch == "-x"}
+    param_type = Fixnum
+    updated = hash_model.update(:parameter__type => param_type, &where)
     updated.raw_data != hash_model.raw_data # => true
+    p updated
+    [{:switch=>"-x", :parameter=>{:type=>Fixnum, :required=>true}, :description=>"Xish stuff", :_id=>0, :_group_id=>0}]
 
 As you would expect you can also update your data in place using `update!`:
 
     x = "-x"
-    param_type = String
+    param_type = Array
     updated = hash_model.update!(x, :parameter__type => param_type) 
     updated.raw_data == hash_model.raw_data # => true
+    p hash_model
+    [{:switch=>"-x", :parameter=>{:type=>Array, :required=>true}, :description=>"Xish stuff", :_id=>0, :_group_id=>0}]
 
-If you want to update a recored an add a field if it doesn't exist you can use `update_and_add`:
+If you want to update a recored or add a field if it doesn't exist you can use `update_and_add`:
 
     x = "-x"
-    param_type = String
-    updated = hash_model.update!(x, :parameter__type => param_type) 
+    arity = 7
+    updated = hash_model.update_and_add(x, :parameter__arity => arity) 
     updated.raw_data == hash_model.raw_data # => true
+    p updated
+    [{:switch=>"-x", :parameter=>{:type=>String, :required=>true, :arity=>7}, :description=>"Xish stuff", :_id=>0, :_group_id=>0}]
 
+And of course there is a destructive version `update_and_add!` that will update in place. 
 
-For more info checkout the rdocs and also checkout the change history below. I go in-depth on the new method calls.
+For more info on the new methods checkout the rdocs but also take a look at the change history below. I go a little more in-depth on the new method calls.
 
 ## Status ##
 
