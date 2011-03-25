@@ -417,7 +417,6 @@ e.g. hash_model.where{:x == "x" && :y == "y"} instead of the less natural hash_m
 * Allow additive filters, i.e. filter on one thing then filter on another and they second filter is based on the first filter. This would also be applicable for `update` and `where` methods; any time a filter is given.
 * Allow direct access to the flatten method.
 
-
 ## Contributing to HashModel ##
 
 * Pull requests are handled ASAP.
