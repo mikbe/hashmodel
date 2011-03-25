@@ -103,13 +103,13 @@ For more info on the new methods checkout the rdocs but also take a look at the 
 
 Lots of changes with this one. The major changes are the ability to write to the HashModel data. See Version History for details.
 
-I fixed a **huge** bug that caused variables to be ignored in boolean searches. It's all fixed now and there are specs to prove make sure it doesn't happen again.
+I fixed a **huge** bug that caused variables to be ignored in boolean searches. It's all fixed now and there are specs to make sure it doesn't happen again.
 
 ## Demo App ##
 
 Check out Widget for a demo of just how easy it is to use HashModel. It now has a lot of complexity but it's a breeze to use:
 
-https://github.com/mikbe/widget
+<https://github.com/mikbe/widget>
 
 ## Usage ##
 
@@ -188,7 +188,7 @@ I've covered most of the major stuff here but to see all of the functionality ta
     end
 
 ### **Direct access to flattened records : []**
-    # the HashModel acts a lot like an array so you can iterate over it
+    # Since the HashModel acts a lot like an array so you can also access it using an index value:
     hash_model = HashModel.new(:raw_data=>records)  
 
     puts hash_model[0]
@@ -196,7 +196,8 @@ I've covered most of the major stuff here but to see all of the functionality ta
 
   
 ### **Flattening records : flatten_index**
-    # Flatten index is automatically set to the first field ever given
+    # The field used to flatten the records, the flatten index,
+    # is automatically set to the first field ever given
     # but you can change it to any field you want.
     hash_model = HashModel.new(:raw_data=>records)  
 		
@@ -267,7 +268,7 @@ I've covered most of the major stuff here but to see all of the functionality ta
     >> {:switch=>"--why", :description=>"lucky what?", :something=>7, :_id=>3, :_group_id=>1}
 
 
-### **Unflattening records : unflatten**
+### **Adding flattened records and unflattening records : unflatten**
     # You can also add flat records in the same way you add raw records. 
     hash_model = HashModel.new
     hash_model << {:switch=>"-x", :parameter__type=>String, :parameter__require=>true, :description=>"Xish stuff"}
@@ -275,7 +276,7 @@ I've covered most of the major stuff here but to see all of the functionality ta
     puts hash_model.raw_data
     >> {:switch => "-x", :parameter => {:type => String, :required => true}, :description => "Xish stuff"}
     
-    # You can also call the unflatten method on an instance or the class itself and send it a record. (It won't mess with the existing data.)
+    # You can call the unflatten methods on an instance or the class itself and send it a record. (It won't mess with the existing data.)
     deep_hash =  { 
       :parameter__type=>String,
       :switch__deep1__deep3 => "deepTwo",
@@ -288,9 +289,10 @@ I've covered most of the major stuff here but to see all of the functionality ta
     }
     unflat = HashModel.unflatten(deep_hash) 
   
-    puts unflat
-    >> {:parameter=>[{:type=>String}, "glorp", {:required=>true}], :switch=>[{:deep1=>{:deep3=>"deepTwo"}}, {:deep2=>"deepTwo"}, "--xtend"], :description=>"Xish stuff"}
-  
+    p unflat
+    [{:parameter=>[{:type=>String}, "glorp", {:required=>true}], :switch=>[{:deep1=>{:deep3=>"deepTwo"}}, {:deep2=>"deepTwo"}, "--xtend"], :description=>"Xish stuff"}]
+
+
 
 ## Version History ##
 
@@ -413,6 +415,7 @@ e.g. hash_model.where{:x == "x" && :y == "y"} instead of the less natural hash_m
 * Make :\_group\_id and :\_id fields not show up by default. They'll still be accessible but they are really more internal values than external so it would be cleaner not to show them.
 * Major refactor for memory efficiency, speed, and general code de-stink.
 * Allow additive filters, i.e. filter on one thing then filter on another and they second filter is based on the first filter. This would also be applicable for `update` and `where` methods; any time a filter is given.
+* Allow direct access to the flatten method.
 
 
 ## Contributing to HashModel ##
