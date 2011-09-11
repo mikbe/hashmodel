@@ -1,6 +1,2 @@
 $: << '.'
-require 'sourcify'
-require 'monkey_patch/deep_clone'
 require 'hash_model/version'
-require 'hash_model/exceptions'
-require 'hash_model/hash_model'
