@@ -20,7 +20,7 @@ GEM
       spruz (>= 0.1.0)
     gherkin (2.3.5)
       json (>= 1.4.6)
-    json (1.5.1)
+    json (2.2.0)
     rspec (2.5.0)
       rspec-core (~> 2.5.0)
       rspec-expectations (~> 2.5.0)
